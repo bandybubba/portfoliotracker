@@ -19,6 +19,11 @@ function Layout({ children }) {
             </Link>
           </li>
           <li className="nav-item mb-2">
+            <Link to="/import-csv" className="nav-link text-white">
+              ImportCSV
+            </Link>
+          </li>
+          <li className="nav-item mb-2">
             <Link to="/transactions" className="nav-link text-white">
               Transactions
             </Link>

@@ -1,11 +1,11 @@
 /************************************************************
  * frontend/src/pages/Transactions.jsx
  *
- * Example usage of "styles.css" classes for a more professional look:
- * - .custom-table
- * - .btn-primary
- * - .select-type
- * - color-coded transaction types
+ * Complete code with:
+ *  - Form to add transactions (unchanged from your version)
+ *  - Table that includes checkboxes for multiple delete
+ *  - "Delete Selected" button that calls POST /transactions/batch-delete
+ *  - Color-coded transaction types
  ************************************************************/
 import React, { useEffect, useState } from 'react';
 
@@ -27,6 +27,10 @@ function Transactions() {
   const [toQuantity, setToQuantity] = useState('');
   const [toPrice, setToPrice] = useState('');
 
+  // Track which IDs are selected for deletion
+  const [selectedIds, setSelectedIds] = useState([]);
+
+  // On mount, fetch transactions
   useEffect(() => {
     fetchTransactions();
   }, []);
@@ -39,12 +43,14 @@ function Transactions() {
       }
       const data = await res.json();
       setTransactions(data);
+      setSelectedIds([]); // clear selection
     } catch (err) {
       console.error('Error fetching transactions:', err);
       setError(err.message);
     }
   };
 
+  // POST /transactions => add new
   const handleAddTransaction = async (e) => {
     e.preventDefault();
     try {
@@ -68,6 +74,7 @@ function Transactions() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
+
       if (!res.ok) {
         throw new Error(`Server error: ${res.status}`);
       }
@@ -93,23 +100,70 @@ function Transactions() {
     }
   };
 
-  // Color-coded classes for each type
+  // Color-coded text for type
   const getTypeClass = (t) => {
-    switch (t.toLowerCase()) {
-      case 'buy': return 'type-buy';
-      case 'sell': return 'type-sell';
-      case 'swap': return 'type-swap';
-      case 'transfer': return 'type-transfer';
-      default: return '';
+    switch ((t || '').toLowerCase()) {
+      case 'buy':
+        return 'type-buy';
+      case 'sell':
+        return 'type-sell';
+      case 'swap':
+        return 'type-swap';
+      case 'transfer':
+        return 'type-transfer';
+      default:
+        return '';
+    }
+  };
+
+  // Checkbox handling
+  const handleCheckboxChange = (id, checked) => {
+    if (checked) {
+      setSelectedIds((prev) => [...prev, id]);
+    } else {
+      setSelectedIds((prev) => prev.filter((x) => x !== id));
+    }
+  };
+
+  // Batch delete selected
+  const handleDeleteSelected = async () => {
+    try {
+      if (!selectedIds.length) {
+        alert('No transactions selected');
+        return;
+      }
+      const confirmDelete = window.confirm(
+        'Are you sure you want to delete the selected transactions?'
+      );
+      if (!confirmDelete) return;
+
+      const payload = { ids: selectedIds };
+      const res = await fetch('http://localhost:3000/transactions/batch-delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (!res.ok) {
+        throw new Error(`Server error: ${res.status}`);
+      }
+
+      const data = await res.json();
+      console.log('Batch delete result:', data);
+      // Re-fetch
+      fetchTransactions();
+    } catch (err) {
+      console.error('Error deleting selected:', err);
+      setError(err.message);
     }
   };
 
   return (
-    <div>
+    <div style={{ padding: '10px' }}>
       <h2>Transactions</h2>
       {error && <p style={{ color: 'red' }}>{error}</p>}
 
-      <div className="card">
+      <div className="card" style={{ marginBottom: '20px' }}>
         <div className="card-header">Add New Transaction</div>
         <div className="card-body">
           <form onSubmit={handleAddTransaction}>
@@ -148,7 +202,7 @@ function Transactions() {
               />
             </div>
 
-            {/* Example: if type != transfer, show "account" field */}
+            {/* If not transfer, we show "account" */}
             {type.toLowerCase() !== 'transfer' && (
               <div className="mb-2">
                 <label>Account: </label>
@@ -160,7 +214,7 @@ function Transactions() {
               </div>
             )}
 
-            {/* For transfer, show fromAccount/toAccount */}
+            {/* If transfer, show fromAccount + toAccount */}
             {type.toLowerCase() === 'transfer' && (
               <>
                 <div className="mb-2">
@@ -237,17 +291,29 @@ function Transactions() {
               />
             </div>
 
-            <button type="submit" className="btn-primary">Add Transaction</button>
+            <button type="submit" className="btn-primary">
+              Add Transaction
+            </button>
           </form>
         </div>
       </div>
+
+      {/* DELETE SELECTED BUTTON */}
+      <button
+        onClick={handleDeleteSelected}
+        className="btn-primary"
+        style={{ marginBottom: '20px' }}
+      >
+        Delete Selected
+      </button>
 
       <div className="card">
         <div className="card-header">All Transactions</div>
         <div className="card-body" style={{ overflowX: 'auto' }}>
           <table className="custom-table">
             <thead>
-              <tr>
+              <tr style={{ textAlign: 'left' }}>
+                <th></th> {/* checkbox column */}
                 <th>ID</th>
                 <th>Date</th>
                 <th>Type</th>
@@ -265,15 +331,23 @@ function Transactions() {
             </thead>
             <tbody>
               {transactions.map((tx) => {
-                const typeClass = getTypeClass(tx.type || '');
+                const typeClass = getTypeClass(tx.type);
+                const isChecked = selectedIds.includes(tx.id);
                 return (
                   <tr key={tx.id}>
+                    <td>
+                      <input
+                        type="checkbox"
+                        checked={isChecked}
+                        onChange={(e) =>
+                          handleCheckboxChange(tx.id, e.target.checked)
+                        }
+                      />
+                    </td>
                     <td>{tx.id}</td>
                     <td>{tx.date}</td>
                     <td>
-                      <span className={typeClass}>
-                        {tx.type}
-                      </span>
+                      <span className={typeClass}>{tx.type}</span>
                     </td>
                     <td>{tx.notes}</td>
                     <td>{tx.account}</td>

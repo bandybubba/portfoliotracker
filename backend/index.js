@@ -5,12 +5,20 @@
  * 2) /portfolio, /portfolio-current
  * 3) Snapshots (both "today" and "any date" via /snapshot/date)
  * 4) /performance route for day/week/month/year changes
+ * 5) CSV Import route (POST /transactions/import-csv)
  **************************************************************/
+
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
 const db = require('./db');
+
+// For CSV import
+const multer = require('multer');
+const Papa = require('papaparse');
+const fs = require('fs');
+const upload = multer({ dest: 'uploads/' }); // temp folder for CSV files
 
 const app = express();
 app.use(cors());
@@ -23,11 +31,44 @@ const coinGeckoMap = {
   BTC: 'bitcoin',
   ETH: 'ethereum',
   DOGE: 'dogecoin',
-  // ...
+  NOVA: 'ai-shell-nova',
+  FET: 'fetch-ai',
+  AERO: 'aerodrome-finance',
+  ALGO: 'algorand',
+  BNB: 'binance',
+  CPOOL: 'clearpool',
+  CROW: 'cr0w-by-virtuals',
+  ENA: 'ethena',
+  HBAR: 'hedera-hashgraph',
+  HYPE: 'hyperliquid',
+  LINK: 'chainlink',
+  ONDO: 'ondo',
+  RENDER: 'render-token',
+  ROOT: 'the-root-network',
+  SHDW: 'genesysgo-shadow',
+  SUI: 'sui',
+  SYLO: 'sylo',
+  VIRTUAL: 'virtual-protocol',
+  UNI: 'uniswap',
+  XRP: 'ripple',
+  XTZ: 'tezos',
+  ZEC: 'zcash',
+  USDC: 'usd-coin',
+  LTC: 'litecoin',
+  SOL: 'solana',
+  PEPE: 'pepe',
+  XLM: 'stellar',
+  AVAX: 'avalanche-2',
+  ADA: 'cardano',
+  NEAR: 'near',
+  JTO: 'jito-governance-token',
+  DOT: 'polkadot',
+  OXT: 'orchid-protocol'
+
 };
 
 /***************************************************************
- * Helpers for real-time price fetching
+ * Helpers: fetchCurrentPrice, fetchCurrentPrices
  **************************************************************/
 async function fetchCurrentPrice(symbol) {
   try {
@@ -74,62 +115,57 @@ async function fetchCurrentPrices(symbols) {
  * POST /transactions
  **************************************************************/
 app.post('/transactions', async (req, res) => {
-    try {
-      let {
-        date,
-        type,
-        notes,
-        fromSymbol,
-        fromQuantity,
-        fromPrice,
-        toSymbol,
-        toQuantity,
-        toPrice,
-        account,        // 10
-        fromAccount,    // 11
-        toAccount       // 12
-      } = req.body;
-  
-      // If missing fromPrice or toPrice, fetch them...
-      if (!fromPrice && fromSymbol) {
-        fromPrice = await fetchCurrentPrice(fromSymbol);
-      }
-      if (!toPrice && toSymbol) {
-        toPrice = await fetchCurrentPrice(toSymbol);
-      }
-  
-      // Here we list all 12 columns
-      const sql = `
-        INSERT INTO transactions (
-          date, type, notes,
-          fromSymbol, fromQuantity, fromPrice,
-          toSymbol, toQuantity, toPrice,
-          account, fromAccount, toAccount
-        )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `;
-  
-      // We also have 12 items in the same order
-      const params = [
+  try {
+    let {
+      date,
+      type,
+      notes,
+      fromSymbol,
+      fromQuantity,
+      fromPrice,
+      toSymbol,
+      toQuantity,
+      toPrice,
+      account,
+      fromAccount,
+      toAccount
+    } = req.body;
+
+    if (!fromPrice && fromSymbol) {
+      fromPrice = await fetchCurrentPrice(fromSymbol);
+    }
+    if (!toPrice && toSymbol) {
+      toPrice = await fetchCurrentPrice(toSymbol);
+    }
+
+    const sql = `
+      INSERT INTO transactions (
         date, type, notes,
         fromSymbol, fromQuantity, fromPrice,
         toSymbol, toQuantity, toPrice,
         account, fromAccount, toAccount
-      ];
-  
-      db.run(sql, params, function(err) {
-        if (err) {
-          console.error('Error inserting transaction:', err);
-          return res.status(500).json({ error: 'Database error' });
-        }
-        res.json({ id: this.lastID, msg: 'Transaction added successfully' });
-      });
-    } catch (error) {
-      console.error('POST /transactions error:', error.message);
-      return res.status(500).json({ error: 'Server error' });
-    }
-  });
-  
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+    const params = [
+      date, type, notes,
+      fromSymbol, fromQuantity, fromPrice,
+      toSymbol, toQuantity, toPrice,
+      account, fromAccount, toAccount
+    ];
+
+    db.run(sql, params, function(err) {
+      if (err) {
+        console.error('Error inserting transaction:', err);
+        return res.status(500).json({ error: 'Database error' });
+      }
+      res.json({ id: this.lastID, msg: 'Transaction added successfully' });
+    });
+  } catch (error) {
+    console.error('POST /transactions error:', error.message);
+    return res.status(500).json({ error: 'Server error' });
+  }
+});
 
 /***************************************************************
  * GET /transactions
@@ -199,7 +235,7 @@ app.put('/transactions/:id', (req, res) => {
           fromPrice = ?,
           toSymbol = ?,
           toQuantity = ?,
-          toPrice = ?
+          toPrice = ?,
           fromAccount = ?,
           toAccount = ?
       WHERE id = ?
@@ -252,124 +288,206 @@ app.delete('/transactions/:id', (req, res) => {
 });
 
 /***************************************************************
+ * POST /transactions/batch-delete
+ * Accepts JSON: { ids: [1,2,3] }
+ * Deletes them in a single statement.
+ **************************************************************/
+app.post('/transactions/batch-delete', (req, res) => {
+    const { ids } = req.body;
+    if (!Array.isArray(ids) || !ids.length) {
+      return res.status(400).json({ error: 'No valid "ids" array provided' });
+    }
+  
+    // single query
+    const placeholders = ids.map(() => '?').join(',');
+    const sql = `DELETE FROM transactions WHERE id IN (${placeholders})`;
+  
+    db.run(sql, ids, function(err) {
+      if (err) {
+        console.error('Error deleting multiple transactions:', err);
+        return res.status(500).json({ error: 'Database error' });
+      }
+      return res.json({ msg: 'Batch delete successful', count: this.changes });
+    });
+  });
+/***************************************************************
+ * CSV Import Route: POST /transactions/import-csv
+ **************************************************************/
+app.post(
+  '/transactions/import-csv',
+  upload.single('file'),
+  async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'No CSV file uploaded' });
+      }
+      const filePath = req.file.path;
+      const fileContent = fs.readFileSync(filePath, 'utf8');
+
+      const parseResult = Papa.parse(fileContent, {
+        header: true,
+        skipEmptyLines: true
+      });
+      if (parseResult.errors.length) {
+        console.error('CSV parse errors:', parseResult.errors);
+        return res.status(400).json({ error: 'Error parsing CSV', details: parseResult.errors });
+      }
+
+      const rows = parseResult.data;
+      if (!rows.length) {
+        return res.status(400).json({ error: 'CSV has no data' });
+      }
+
+      let insertedCount = 0;
+      for (const row of rows) {
+        const {
+          date,
+          type,
+          notes,
+          account,
+          fromSymbol,
+          fromQuantity,
+          fromPrice,
+          toSymbol,
+          toQuantity,
+          toPrice,
+          fromAccount,
+          toAccount
+        } = row;
+
+        const fQty = parseFloat(fromQuantity) || 0;
+        const fPrice = parseFloat(fromPrice) || 0;
+        const tQty = parseFloat(toQuantity) || 0;
+        const tPrice = parseFloat(toPrice) || 0;
+
+        const insertSql = `
+          INSERT INTO transactions (
+            date, type, notes, account,
+            fromSymbol, fromQuantity, fromPrice,
+            toSymbol, toQuantity, toPrice,
+            fromAccount, toAccount
+          )
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `;
+        const params = [
+          date, type, notes, account,
+          fromSymbol, fQty, fPrice,
+          toSymbol, tQty, tPrice,
+          fromAccount, toAccount
+        ];
+
+        await new Promise((resolve, reject) => {
+          db.run(insertSql, params, function(err) {
+            if (err) return reject(err);
+            resolve();
+          });
+        });
+
+        insertedCount++;
+      }
+
+      fs.unlinkSync(filePath); // clean temp file
+
+      res.json({ msg: 'CSV import successful', inserted: insertedCount });
+    } catch (err) {
+      console.error('CSV import error:', err);
+      res.status(500).json({ error: 'Server error' });
+    }
+  }
+);
+
+/***************************************************************
  * GET /accounts
  **************************************************************/
 /***************************************************************
  * GET /accounts/balances
- * 
- * For each account, we do:
- *  - filter transactions to only those with account = that account
- *  - from->to logic to find net quantity of each symbol
- *  - fetch real-time prices from CoinGecko
- *  - compute totalValue plus a breakdown array
- *
- * Returns an array:
- * [
- *   {
- *     account: "MyLedger",
- *     totalValue: 12000,
- *     breakdown: [
- *       { symbol: "BTC", quantity: 0.3, currentPrice: 26000, totalValue: 7800 },
- *       { symbol: "ETH", quantity: 2, currentPrice: 1500, totalValue: 3000 }
- *     ]
- *   },
- *   ...
- * ]
  **************************************************************/
 app.get('/accounts/balances', async (req, res) => {
-    try {
-      // 1) Find all distinct accounts
-      const accountsData = await new Promise((resolve, reject) => {
-        db.all(`
-          SELECT account 
-          FROM transactions
-          WHERE account IS NOT NULL AND account != ''
-          GROUP BY account
-        `, [], (err, rows) => {
-          if (err) return reject(err);
-          resolve(rows); // e.g. [{ account: "Coinbase" }, { account: "Ledger" }]
-        });
+  try {
+    // 1) Find all distinct accounts
+    const accountsData = await new Promise((resolve, reject) => {
+      db.all(`
+        SELECT account 
+        FROM transactions
+        WHERE account IS NOT NULL AND account != ''
+        GROUP BY account
+      `, [], (err, rows) => {
+        if (err) return reject(err);
+        resolve(rows);
       });
-  
-      if (!accountsData.length) {
-        return res.json([]);
-      }
-  
-      const results = [];
-  
-      // 2) For each account, compute net quantities & real-time total
-      for (const row of accountsData) {
-        const accountName = row.account;
-  
-        // a) fetch all transactions for this account
-        const txs = await new Promise((resolve, reject) => {
-          db.all(`
-            SELECT *
-            FROM transactions
-            WHERE account = ?
-            ORDER BY date ASC, id ASC
-          `, [accountName], (err2, rows2) => {
+    });
+
+    if (!accountsData.length) {
+      return res.json([]);
+    }
+
+    const results = [];
+    for (const row of accountsData) {
+      const accountName = row.account;
+      // gather transactions for that account
+      const txs = await new Promise((resolve, reject) => {
+        db.all(
+          `
+          SELECT *
+          FROM transactions
+          WHERE account = ?
+          ORDER BY date ASC, id ASC
+        `,
+          [accountName],
+          (err2, rows2) => {
             if (err2) return reject(err2);
             resolve(rows2);
-          });
-        });
-  
-        // b) build net quantity map for each symbol
-        const qtyMap = {}; // symbol -> net quantity
-        function addQty(sym, delta) {
-          if (!qtyMap[sym]) qtyMap[sym] = 0;
-          qtyMap[sym] += delta;
+          }
+        );
+      });
+
+      // net quantity
+      const qtyMap = {};
+      function addQty(sym, delta) {
+        if (!qtyMap[sym]) qtyMap[sym] = 0;
+        qtyMap[sym] += delta;
+      }
+
+      txs.forEach((tx) => {
+        if (tx.fromAccount === accountName) {
+          addQty(tx.fromSymbol, -(tx.fromQuantity || 0));
         }
-  
-        // c) apply from->to logic ignoring 'transfer' cost basis
-        txs.forEach((tx) => {
-            if (tx.fromAccount === accountName) {
-                addQty(tx.fromSymbol, -(tx.fromQuantity || 0));
-              }
-              if (tx.toAccount === accountName) {
-                addQty(tx.toSymbol, (tx.toQuantity || 0));
-              }
+        if (tx.toAccount === accountName) {
+          addQty(tx.toSymbol, (tx.toQuantity || 0));
+        }
+        if (tx.type?.toLowerCase() !== 'transfer') {
           addQty(tx.fromSymbol, -(tx.fromQuantity || 0));
           addQty(tx.toSymbol, (tx.toQuantity || 0));
-        });
-  
-        // d) filter out any zero or negative quantity
-        const symbolsHeld = Object.keys(qtyMap).filter(s => qtyMap[s] > 0);
-  
-        // e) fetch real-time prices from CoinGecko
-        const livePrices = await fetchCurrentPrices(symbolsHeld);
-  
-        // f) build a breakdown array
-        let accountTotalValue = 0;
-        const breakdown = [];
-        for (const sym of symbolsHeld) {
-          const quantity = qtyMap[sym];
-          const currentPrice = livePrices[sym] || 0;
-          const totalValue = quantity * currentPrice;
-          accountTotalValue += totalValue;
-  
-          breakdown.push({
-            symbol: sym,
-            quantity,
-            currentPrice,
-            totalValue
-          });
         }
-  
-        results.push({
-          account: accountName,
-          totalValue: accountTotalValue,
-          breakdown
-        });
+      });
+
+      const symbolsHeld = Object.keys(qtyMap).filter(s => qtyMap[s] > 0);
+      const livePrices = await fetchCurrentPrices(symbolsHeld);
+
+      let accountTotalValue = 0;
+      const breakdown = [];
+      for (const sym of symbolsHeld) {
+        const quantity = qtyMap[sym];
+        const price = livePrices[sym] || 0;
+        const totalValue = quantity * price;
+        accountTotalValue += totalValue;
+        breakdown.push({ symbol: sym, quantity, currentPrice: price, totalValue });
       }
-  
-      res.json(results);
-    } catch (err) {
-      console.error('GET /accounts/balances error:', err);
-      res.status(500).json({ error: 'Server error' });
+
+      results.push({
+        account: accountName,
+        totalValue: accountTotalValue,
+        breakdown
+      });
     }
-  });
-  
+
+    res.json(results);
+  } catch (err) {
+    console.error('GET /accounts/balances error:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 /***************************************************************
  * GET /portfolio => cost basis
  **************************************************************/
@@ -393,7 +511,7 @@ app.get('/portfolio', (req, res) => {
       ensureSymbol(sym);
       const currentQty = portfolioMap[sym].quantity;
       const avgCost = currentQty
-        ? portfolioMap[sym].totalCost / currentQty
+        ? (portfolioMap[sym].totalCost / currentQty)
         : 0;
       portfolioMap[sym].quantity -= qty;
       portfolioMap[sym].totalCost -= (avgCost * qty);
@@ -416,9 +534,7 @@ app.get('/portfolio', (req, res) => {
       const toPrice = tx.toPrice || 0;
       const toSym = tx.toSymbol;
 
-      // SELL
       handleSell(fromSym, fromQty);
-      // BUY
       handleBuy(toSym, toQty, toPrice);
     });
 
@@ -435,52 +551,59 @@ app.get('/portfolio', (req, res) => {
 /***************************************************************
  * GET /portfolio-current => real-time
  **************************************************************/
+/***************************************************************
+ * GET /portfolio-current => real-time valuations
+ * We now do net quantity for ALL transaction types 
+ * (buy, sell, swap, transfer, etc.)
+ **************************************************************/
 app.get('/portfolio-current', (req, res) => {
-  const sql = 'SELECT * FROM transactions ORDER BY date ASC, id ASC';
-  db.all(sql, [], async (err, rows) => {
-    if (err) {
-      console.error('GET /portfolio-current error:', err);
-      return res.status(500).json({ error: 'Database error' });
-    }
-
-    const qtyMap = {};
-    function addQty(sym, d) {
-      if (!qtyMap[sym]) qtyMap[sym] = 0;
-      qtyMap[sym] += d;
-    }
-
-    rows.forEach((tx) => {
-      if (tx.type?.toLowerCase() === 'transfer') return;
-      addQty(tx.fromSymbol, -(tx.fromQuantity || 0));
-      addQty(tx.toSymbol, tx.toQuantity || 0);
-    });
-
-    const symbolsHeld = Object.keys(qtyMap).filter(s => qtyMap[s] > 0);
-    const livePrices = await fetchCurrentPrices(symbolsHeld);
-
-    let totalValue = 0;
-    const breakdown = [];
-    for (const s of symbolsHeld) {
-      const qty = qtyMap[s];
-      const px = livePrices[s] || 0;
-      const val = qty * px;
-      totalValue += val;
-      breakdown.push({
-        symbol: s,
-        quantity: qty,
-        currentPrice: px,
-        totalValue: val
+    const sql = 'SELECT * FROM transactions ORDER BY date ASC, id ASC';
+    db.all(sql, [], async (err, rows) => {
+      if (err) {
+        console.error('GET /portfolio-current error:', err);
+        return res.status(500).json({ error: 'Database error' });
+      }
+  
+      const qtyMap = {};
+      function addQty(sym, d) {
+        if (!qtyMap[sym]) qtyMap[sym] = 0;
+        qtyMap[sym] += d;
+      }
+  
+      rows.forEach((tx) => {
+        // we no longer skip "transfer"
+        // any fromSymbol -> subtract
+        addQty(tx.fromSymbol, -(tx.fromQuantity || 0));
+        // any toSymbol -> add
+        addQty(tx.toSymbol, (tx.toQuantity || 0));
       });
-    }
-
-    res.json({ totalValue, breakdown });
+  
+      const symbolsHeld = Object.keys(qtyMap).filter((s) => qtyMap[s] > 0);
+      const livePrices = await fetchCurrentPrices(symbolsHeld);
+  
+      let totalValue = 0;
+      const breakdown = [];
+      for (const s of symbolsHeld) {
+        const qty = qtyMap[s];
+        const px = livePrices[s] || 0;
+        const val = qty * px;
+        totalValue += val;
+        breakdown.push({
+          symbol: s,
+          quantity: qty,
+          currentPrice: px,
+          totalValue: val
+        });
+      }
+  
+      res.json({ totalValue, breakdown });
+    });
   });
-});
+  
 
 /***************************************************************
- * Snapshots
+ * Snapshots & Performance
  **************************************************************/
-// a) getCurrentTotalValue => for "today"
 async function getCurrentTotalValue() {
   return new Promise((resolve, reject) => {
     const sql = 'SELECT * FROM transactions ORDER BY date ASC, id ASC';
@@ -504,17 +627,14 @@ async function getCurrentTotalValue() {
 
       let total = 0;
       for (const sym of syms) {
-        total += (qtyMap[sym] * (prices[sym] || 0));
+        total += qtyMap[sym] * (prices[sym] || 0);
       }
       resolve(total);
     });
   });
 }
 
-// b) getTotalValueForDate => simulate "as of dateStr"
 async function getTotalValueForDate(dateStr) {
-  // We'll only consider transactions where tx.date <= dateStr
-  // then compute net quantity the same as above, but ignoring future transactions
   return new Promise((resolve, reject) => {
     const sql = 'SELECT * FROM transactions WHERE date <= ? ORDER BY date ASC, id ASC';
     db.all(sql, [dateStr], async (err, rows) => {
@@ -537,7 +657,7 @@ async function getTotalValueForDate(dateStr) {
 
       let total = 0;
       for (const sym of syms) {
-        total += (qtyMap[sym] * (prices[sym] || 0));
+        total += qtyMap[sym] * (prices[sym] || 0);
       }
       resolve(total);
     });
@@ -571,7 +691,6 @@ app.post('/snapshot/date', async (req, res) => {
     if (!snapshotDate) {
       return res.status(400).json({ error: 'Missing snapshotDate in body' });
     }
-    // We'll compute the portfolio as if it's snapshotDate
     const totalValue = await getTotalValueForDate(snapshotDate);
 
     const sql = 'INSERT INTO portfolio_snapshots (date, totalValue) VALUES (?, ?)';
@@ -588,7 +707,6 @@ app.post('/snapshot/date', async (req, res) => {
   }
 });
 
-// GET /snapshots => list them
 app.get('/snapshots', (req, res) => {
   const sql = 'SELECT * FROM portfolio_snapshots ORDER BY date ASC';
   db.all(sql, [], (err, rows) => {
@@ -681,6 +799,9 @@ app.get('/performance', async (req, res) => {
   }
 });
 
+/***************************************************************
+ * Start the server
+ **************************************************************/
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);

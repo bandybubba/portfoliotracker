@@ -1,53 +1,56 @@
 /************************************************************
  * DarkStyles.css
  * 
- * A dark dashboard theme with side nav, topbar, 
- * card containers, charts, etc.
+ * Merged approach with .dark-container for centering.
  ************************************************************/
 
-/* Basic resets & color variables */
-:root {
+ :root {
     --bg-color: #0F0F10;
     --sidebar-bg: #1A1A1D;
     --card-bg: #1E1E22;
     --text-color: #ECECEC;
     --highlight-color: #A09EF7;
-    --accent-color: #FF5370;
     --header-height: 60px;
     --sidebar-width: 220px;
     --transition-speed: 0.3s;
     font-size: 14px;
     font-family: 'Roboto', sans-serif;
     color-scheme: dark;
-    /* Adjust as needed */
   }
   
-  body {
+  html, body {
     margin: 0;
     padding: 0;
-    background-color: var(--bg-color);
+    background: var(--bg-color) !important;
     color: var(--text-color);
+    min-height: 100vh;
   }
   
-  /* LAYOUT: Sidebar, Topbar, Main */
+  /* The overall layout has .dark-sidebar and main container */
   .dark-layout {
     display: flex;
     min-height: 100vh;
   }
   
+  /* SIDEBAR */
   .dark-sidebar {
     width: var(--sidebar-width);
     background: var(--sidebar-bg);
     display: flex;
     flex-direction: column;
-    padding: 10px;
+    padding: 20px;
+    transition: width var(--transition-speed);
   }
   
   .dark-sidebar h2 {
     color: var(--highlight-color);
-    margin-bottom: 20px;
+    margin: 0 0 20px;
+    font-size: 18px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
   }
-  
   .dark-sidebar ul {
     list-style: none;
     margin: 0;
@@ -62,13 +65,16 @@
     font-weight: 500;
     padding: 8px;
     border-radius: 4px;
-    display: block;
+    display: flex;
+    align-items: center;
+    gap: 8px;
     transition: background var(--transition-speed);
   }
   .dark-sidebar ul li a:hover {
     background: rgba(255,255,255,0.1);
   }
   
+  /* TOPBAR */
   .dark-topbar {
     height: var(--header-height);
     background: #18181B;
@@ -79,13 +85,26 @@
     color: #ccc;
   }
   
+  .dark-main-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  
   .dark-main-content {
     flex: 1;
     padding: 20px;
     overflow-y: auto;
   }
   
-  /* CARD STYLES */
+  /* The container that centers all page content */
+  .dark-container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  /* CARDS & TABLES */
   .dark-card {
     background: var(--card-bg);
     border-radius: 8px;
@@ -93,19 +112,16 @@
     margin-bottom: 20px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
   }
-  
   .dark-card h3 {
     margin-top: 0;
     margin-bottom: 10px;
     color: #fff;
   }
-  
   .dark-card-header {
     font-size: 16px;
     margin-bottom: 12px;
   }
   
-  /* TABLES */
   .dark-table {
     width: 100%;
     border-collapse: collapse;
@@ -124,18 +140,6 @@
     background: rgba(255,255,255,0.05);
   }
   
-  /* CHART Container */
-  .chart-container {
-    width: 100%;
-    height: 240px;
-    position: relative;
-  }
-  
-  /* HEADINGS, TEXT, ETC. */
-  h1, h2, h3, h4, h5 {
-    color: #fff;
-  }
-  
   /* Buttons */
   .dark-btn {
     background: var(--highlight-color);
@@ -148,5 +152,54 @@
   }
   .dark-btn:hover {
     background: #7f7df7;
+  }
+  
+  /* Headings */
+  h1, h2, h3, h4, h5 {
+    color: #fff;
+  }
+  
+  /* Search bar (optional) */
+  .search-bar {
+    display: inline-flex;
+    align-items: center;
+    background: #2a2a2f;
+    padding: 6px 10px;
+    border-radius: 4px;
+    margin-bottom: 10px;
+  }
+  .search-bar input {
+    border: none;
+    background: transparent;
+    outline: none;
+    color: #fff;
+  }
+  .search-bar input::placeholder {
+    color: #999;
+  }
+  
+  /* Sort icon (optional) */
+  .sort-icon {
+    margin-left: 5px;
+    color: #999;
+    cursor: pointer;
+  }
+  
+  /* RESPONSIVE SIDEBAR */
+  @media (max-width: 768px) {
+    .dark-sidebar {
+      position: fixed;
+      left: -220px;
+      top: 0;
+      height: 100vh;
+      z-index: 999;
+    }
+    .dark-sidebar.show {
+      left: 0;
+    }
+    .dark-topbar .sidebar-toggle {
+      display: inline-block;
+      cursor: pointer;
+    }
   }
   

@@ -1,42 +1,102 @@
 /************************************************************
- * src/DarkLayout.jsx
- *
- * A full "dark" layout with:
- * - Sidebar (ul links)
- * - Topbar
- * - Main content that renders the children
+ * DarkLayout.jsx - Full final code 
  ************************************************************/
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import './DarkStyles.css'; // Import the CSS from File 1
+// Make sure you have `npm install react-icons`
+import {
+  FaChartPie,
+  FaFileImport,
+  FaList,
+  FaCameraRetro,
+  FaChartLine,
+  FaUsers,
+  FaBars
+} from 'react-icons/fa';
+
+import './DarkStyles.css';
 
 function DarkLayout({ children }) {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
+  };
+
   return (
     <div className="dark-layout">
-      {/* SIDEBAR */}
-      <aside className="dark-sidebar">
-        <h2>My Portfolio</h2>
+      <aside className={`dark-sidebar ${sidebarOpen ? 'show' : ''}`}>
+        <h2>
+          <FaChartPie />
+          My Portfolio
+        </h2>
         <ul>
-          <li><Link to="/dashboard">Dashboard</Link></li>
-          <li><Link to="/import-csv">Import CSV</Link></li>
-          <li><Link to="/transactions">Transactions</Link></li>
-          <li><Link to="/snapshots">Snapshots</Link></li>
-          <li><Link to="/performance">Performance</Link></li>
-          <li><Link to="/accounts">Accounts</Link></li>
+          <li>
+            <Link to="/dashboard" onClick={() => setSidebarOpen(false)}>
+              <FaChartPie />
+              Dashboard
+            </Link>
+          </li>
+        <li>
+        <Link to="/manual-balances" onClick={() => setSidebarOpen(false)}>
+            <FaList />
+            Manual Balances
+        </Link>
+        </li>
+
+          <li>
+            <Link to="/import-csv" onClick={() => setSidebarOpen(false)}>
+              <FaFileImport />
+              Import CSV
+            </Link>
+          </li>
+          <li>
+            <Link to="/transactions" onClick={() => setSidebarOpen(false)}>
+              <FaList />
+              Transactions
+            </Link>
+          </li>
+          <li>
+            <Link to="/snapshots" onClick={() => setSidebarOpen(false)}>
+              <FaCameraRetro />
+              Snapshots
+            </Link>
+          </li>
+          <li>
+            <Link to="/performance" onClick={() => setSidebarOpen(false)}>
+              <FaChartLine />
+              Performance
+            </Link>
+          </li>
+          <li>
+            <Link to="/accounts" onClick={() => setSidebarOpen(false)}>
+              <FaUsers />
+              Accounts
+            </Link>
+          </li>
         </ul>
       </aside>
 
-      {/* MAIN COLUMN */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-        {/* TOPBAR */}
+      <div className="dark-main-container">
+        {/* Topbar */}
         <header className="dark-topbar">
-          <div><strong>My Portfolio Admin</strong></div>
-          <div>User Info or Settings</div>
+          <div>
+            {/* Hamburger for mobile */}
+            <FaBars
+              className="sidebar-toggle"
+              style={{ fontSize: '20px', marginRight: '15px' }}
+              onClick={toggleSidebar}
+            />
+            <strong>My Portfolio Admin</strong>
+          </div>
+          <div>User Info / Settings</div>
         </header>
 
-        {/* MAIN CONTENT */}
+        {/* Main content => container with max-width */}
         <main className="dark-main-content">
-          {children}
+          <div className="dark-container">
+            {children}
+          </div>
         </main>
       </div>
     </div>

@@ -1,11 +1,3 @@
-/************************************************************
- * frontend/src/pages/Accounts.jsx
- *
- * For Step #6:
- * - Calls GET /accounts/balances
- * - Displays each account in a "widget" table (like a card)
- ************************************************************/
-
 import React, { useEffect, useState } from 'react';
 
 function Accounts() {
@@ -22,18 +14,7 @@ function Accounts() {
       if (!res.ok) {
         throw new Error(`Server error: ${res.status}`);
       }
-      const data = await res.json(); 
-      // e.g. [
-      //   {
-      //     account: "Coinbase",
-      //     totalValue: 12000,
-      //     breakdown: [
-      //       { symbol: "BTC", quantity: 0.3, currentPrice: 26000, totalValue: 7800 },
-      //       ...
-      //     ]
-      //   },
-      //   ...
-      // ]
+      const data = await res.json();
       setBalances(data);
     } catch (err) {
       console.error('Error fetching account balances:', err);
@@ -42,34 +23,20 @@ function Accounts() {
   };
 
   return (
-    <div style={{ padding: '20px' }}>
-      <h2>Accounts / Wallets</h2>
+    <div>
+      <h1 style={{ marginBottom: '20px' }}>Accounts</h1>
       {error && <p style={{ color: 'red' }}>{error}</p>}
 
       {balances.length === 0 ? (
         <p>No accounts found or no data.</p>
       ) : (
-        balances.map((acc) => (
-          <div
-            key={acc.account}
-            style={{
-              border: '1px solid #ccc',
-              padding: '15px',
-              marginBottom: '20px'
-            }}
-          >
+        balances.map((acc, idx) => (
+          <div className="dark-card" key={idx}>
             <h3>{acc.account}</h3>
-            <p>
-              <strong>Total Value:</strong> $
-              {acc.totalValue.toLocaleString(undefined, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-              })}
-            </p>
-
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <p><strong>Total Value:</strong> ${acc.totalValue.toFixed(2)}</p>
+            <table className="dark-table">
               <thead>
-                <tr style={{ textAlign: 'left', borderBottom: '2px solid #555' }}>
+                <tr>
                   <th>Symbol</th>
                   <th>Quantity</th>
                   <th>Current Price</th>
@@ -77,24 +44,12 @@ function Accounts() {
                 </tr>
               </thead>
               <tbody>
-                {acc.breakdown.map((row, idx) => (
-                  <tr key={idx} style={{ borderBottom: '1px solid #ccc' }}>
+                {acc.breakdown.map((row, i2) => (
+                  <tr key={i2}>
                     <td>{row.symbol}</td>
-                    <td>{row.quantity}</td>
-                    <td>
-                      $
-                      {row.currentPrice.toLocaleString(undefined, {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2
-                      })}
-                    </td>
-                    <td>
-                      $
-                      {row.totalValue.toLocaleString(undefined, {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2
-                      })}
-                    </td>
+                    <td>{row.quantity.toFixed(4)}</td>
+                    <td>${row.currentPrice.toFixed(2)}</td>
+                    <td>${row.totalValue.toFixed(2)}</td>
                   </tr>
                 ))}
               </tbody>

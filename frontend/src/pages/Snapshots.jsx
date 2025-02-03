@@ -1,11 +1,8 @@
-// frontend/src/pages/Snapshots.jsx
 import React, { useEffect, useState } from 'react';
 
 function Snapshots() {
   const [snapshots, setSnapshots] = useState([]);
   const [error, setError] = useState('');
-
-  // For the "snapshot by date" form
   const [snapshotDate, setSnapshotDate] = useState('');
 
   useEffect(() => {
@@ -26,25 +23,20 @@ function Snapshots() {
     }
   };
 
-  // "Take Snapshot Now" => POST /snapshot
   const handleTakeSnapshotNow = async () => {
     try {
-      const res = await fetch('http://localhost:3000/snapshot', {
-        method: 'POST'
-      });
+      const res = await fetch('http://localhost:3000/snapshot', { method: 'POST' });
       if (!res.ok) {
         throw new Error(`Server error: ${res.status}`);
       }
       const data = await res.json();
-      console.log('Snapshot created:', data);
-      fetchSnapshots(); // refresh list
+      fetchSnapshots();
     } catch (err) {
       console.error('Error taking snapshot now:', err);
       setError(err.message);
     }
   };
 
-  // "Snapshot On Date" => POST /snapshot/date with { snapshotDate }
   const handleSnapshotOnDate = async (e) => {
     e.preventDefault();
     try {
@@ -60,9 +52,8 @@ function Snapshots() {
       if (!res.ok) {
         throw new Error(`Server error: ${res.status}`);
       }
-      const data = await res.json();
-      console.log('Snapshot on date created:', data);
-      setSnapshotDate(''); // clear form
+      await res.json();
+      setSnapshotDate('');
       fetchSnapshots();
     } catch (err) {
       console.error('Error taking snapshot by date:', err);
@@ -71,51 +62,49 @@ function Snapshots() {
   };
 
   return (
-    <div style={{ padding: '10px' }}>
-      <h2>Historical Snapshots</h2>
+    <div>
+      <h1 style={{ marginBottom: '20px' }}>Snapshots</h1>
       {error && <p style={{ color: 'red' }}>{error}</p>}
 
-      {/* Button for "Take Snapshot Now" */}
-      <button onClick={handleTakeSnapshotNow} style={{ marginBottom: '20px' }}>
-        Take Snapshot Now
-      </button>
-
-      {/* Form for "Snapshot As Of Date" */}
-      <form onSubmit={handleSnapshotOnDate} style={{ marginBottom: '20px' }}>
-        <label>Snapshot Date: </label>
-        <input
-          type="date"
-          value={snapshotDate}
-          onChange={(e) => setSnapshotDate(e.target.value)}
-        />
-        <button type="submit" style={{ marginLeft: '10px' }}>
-          Snapshot On This Date
+      <div className="dark-card" style={{ marginBottom: '20px' }}>
+        <button onClick={handleTakeSnapshotNow} className="dark-btn" style={{ marginRight: '10px' }}>
+          Take Snapshot Now
         </button>
-      </form>
 
-      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-        <thead>
-          <tr style={{ textAlign: 'left', borderBottom: '2px solid #555' }}>
-            <th>ID</th>
-            <th>Date</th>
-            <th>Total Value</th>
-          </tr>
-        </thead>
-        <tbody>
-          {snapshots.map((s) => (
-            <tr key={s.id} style={{ borderBottom: '1px solid #ccc' }}>
-              <td>{s.id}</td>
-              <td>{s.date}</td>
-              <td>
-                {s.totalValue?.toLocaleString(undefined, {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2
-                })}
-              </td>
+        <form onSubmit={handleSnapshotOnDate} style={{ display: 'inline-block' }}>
+          <label>Snapshot Date: </label>
+          <input
+            type="date"
+            value={snapshotDate}
+            onChange={(e) => setSnapshotDate(e.target.value)}
+          />
+          <button type="submit" className="dark-btn" style={{ marginLeft: '10px' }}>
+            Snapshot On This Date
+          </button>
+        </form>
+      </div>
+
+      <div className="dark-card">
+        <h3>Historical Snapshots</h3>
+        <table className="dark-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Date</th>
+              <th>Total Value</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {snapshots.map((s) => (
+              <tr key={s.id}>
+                <td>{s.id}</td>
+                <td>{s.date}</td>
+                <td>${(s.totalValue || 0).toLocaleString()}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

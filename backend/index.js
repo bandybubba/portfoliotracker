@@ -35,14 +35,14 @@ const coinGeckoMap = {
   FET: 'fetch-ai',
   AERO: 'aerodrome-finance',
   ALGO: 'algorand',
-  BNB: 'binance',
+  BNB: 'binancecoin',
   CPOOL: 'clearpool',
   CROW: 'cr0w-by-virtuals',
   ENA: 'ethena',
   HBAR: 'hedera-hashgraph',
   HYPE: 'hyperliquid',
   LINK: 'chainlink',
-  ONDO: 'ondo',
+  ONDO: 'ondo-finance',
   RENDER: 'render-token',
   ROOT: 'the-root-network',
   SHDW: 'genesysgo-shadow',
@@ -63,7 +63,9 @@ const coinGeckoMap = {
   NEAR: 'near',
   JTO: 'jito-governance-token',
   DOT: 'polkadot',
-  OXT: 'orchid-protocol'
+  OXT: 'orchid-protocol',
+  USDT: 'tether',
+  SKI: 'ski-mask-dog'
 
 };
 
@@ -286,6 +288,263 @@ app.delete('/transactions/:id', (req, res) => {
     res.json({ msg: 'Transaction deleted successfully' });
   });
 });
+
+/***************************************************************
+ * MANUAL BALANCES - Optional feature, no cost basis changes
+ **************************************************************/
+
+/*
+  Make sure your DB table has columns: id, account, symbol, quantity, notes
+  Example:
+  CREATE TABLE IF NOT EXISTS manual_balances (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    account TEXT,
+    symbol TEXT,
+    quantity REAL,
+    notes TEXT
+  );
+  If you only had symbol, quantity, notes before, do:
+    ALTER TABLE manual_balances ADD COLUMN account TEXT;
+*/
+
+/**
+ * POST /manual-balances
+ * Expects { account, symbol, quantity, notes }
+ */
+app.post('/manual-balances', (req, res) => {
+    const { account, symbol, notes } = req.body;
+    let { quantity } = req.body;
+    if (!symbol) {
+      return res.status(400).json({ error: 'Symbol is required' });
+    }
+    quantity = parseFloat(quantity) || 0;
+  
+    const sql = `
+      INSERT INTO manual_balances (account, symbol, quantity, notes)
+      VALUES (?, ?, ?, ?)
+    `;
+    db.run(sql, [account, symbol, quantity, notes], function(err) {
+      if (err) {
+        console.error('Error inserting manual balance:', err);
+        return res.status(500).json({ error: 'Database error' });
+      }
+      res.json({ id: this.lastID, msg: 'Manual balance added' });
+    });
+  });
+  
+  /**
+   * GET /manual-balances
+   * Lists all manual balances (raw) from the DB table
+   */
+  app.get('/manual-balances', (req, res) => {
+    const sql = 'SELECT * FROM manual_balances ORDER BY id ASC';
+    db.all(sql, [], (err, rows) => {
+      if (err) {
+        console.error('GET /manual-balances error:', err);
+        return res.status(500).json({ error: 'Database error' });
+      }
+      res.json(rows);
+    });
+  });
+  
+  /**
+   * PUT /manual-balances/:id
+   * Expects { account, symbol, quantity, notes } to update
+   */
+  app.put('/manual-balances/:id', (req, res) => {
+    const balanceId = req.params.id;
+    const { account, symbol, notes } = req.body;
+    let { quantity } = req.body;
+    quantity = parseFloat(quantity) || 0;
+  
+    const fetchSql = 'SELECT * FROM manual_balances WHERE id = ?';
+    db.get(fetchSql, [balanceId], (err, existing) => {
+      if (err) {
+        console.error('Error fetching manual balance:', err);
+        return res.status(500).json({ error: 'Database error' });
+      }
+      if (!existing) {
+        return res.status(404).json({ error: 'Manual balance not found' });
+      }
+  
+      const updAccount = account !== undefined ? account : existing.account;
+      const updSymbol = symbol !== undefined ? symbol : existing.symbol;
+      const updQty = req.body.quantity !== undefined ? quantity : existing.quantity;
+      const updNotes = notes !== undefined ? notes : existing.notes;
+  
+      const updateSql = `
+        UPDATE manual_balances
+        SET account = ?,
+            symbol = ?,
+            quantity = ?,
+            notes = ?
+        WHERE id = ?
+      `;
+      db.run(updateSql, [updAccount, updSymbol, updQty, updNotes, balanceId], function(updateErr) {
+        if (updateErr) {
+          console.error('Error updating manual balance:', updateErr);
+          return res.status(500).json({ error: 'Database error' });
+        }
+        if (this.changes === 0) {
+          return res.status(404).json({ error: 'No row updated' });
+        }
+        res.json({ msg: 'Manual balance updated' });
+      });
+    });
+  });
+  
+  /**
+   * DELETE /manual-balances/:id
+   */
+  app.delete('/manual-balances/:id', (req, res) => {
+    const balanceId = req.params.id;
+    const sql = 'DELETE FROM manual_balances WHERE id = ?';
+    db.run(sql, [balanceId], function(err) {
+      if (err) {
+        console.error('Error deleting manual balance:', err);
+        return res.status(500).json({ error: 'Database error' });
+      }
+      if (this.changes === 0) {
+        return res.status(404).json({ error: 'Manual balance not found' });
+      }
+      res.json({ msg: 'Manual balance deleted' });
+    });
+  });
+  
+  /***************************************************************
+   * GET /manual-balances-overview
+   * Summarizes everything byAccount & bySymbol with real-time price
+   * 
+   * Output shape:
+   * {
+   *   totalValue: number,
+   *   byAccount: [
+   *     {
+   *       account: "Chase",
+   *       totalValue: 2000,
+   *       breakdown: [
+   *         { symbol, quantity, currentPrice, totalValue }
+   *       ]
+   *     },
+   *     ...
+   *   ],
+   *   bySymbol: [
+   *     {
+   *       symbol: "BTC",
+   *       totalQuantity: 2.5,
+   *       currentPrice: 26000,
+   *       totalValue: 65000
+   *     },
+   *     ...
+   *   ]
+   * }
+   **************************************************************/
+  app.get('/manual-balances-overview', async (req, res) => {
+    try {
+      // 1) fetch all rows
+      const rows = await new Promise((resolve, reject) => {
+        db.all('SELECT account, symbol, quantity FROM manual_balances', [], (err, r) => {
+          if (err) return reject(err);
+          resolve(r);
+        });
+      });
+      if (!rows.length) {
+        return res.json({
+          totalValue: 0,
+          byAccount: [],
+          bySymbol: []
+        });
+      }
+  
+      // 2) sum quantity by symbol for real-time prices
+      const symbolMap = {};
+      for (const row of rows) {
+        const sym = (row.symbol || '').toUpperCase();
+        if (!symbolMap[sym]) symbolMap[sym] = 0;
+        symbolMap[sym] += (row.quantity || 0);
+      }
+  
+      // 3) fetch from your existing function: fetchCurrentPrices(symbols)
+      //    if a symbol isn't recognized by CoinGecko, price=0
+      const symbols = Object.keys(symbolMap);
+      const prices = await fetchCurrentPrices(symbols);
+  
+      // 4) build byAccount
+      // group rows by (account => breakdown of symbol, quantity)
+      const accountMap = {}; 
+      for (const row of rows) {
+        const acct = row.account || 'NoAccount';
+        const sym = (row.symbol || '').toUpperCase();
+        const qty = row.quantity || 0;
+  
+        if (!accountMap[acct]) {
+          accountMap[acct] = {
+            breakdown: [],
+            accountTotal: 0
+          };
+        }
+        // see if we already have that symbol in breakdown
+        const existing = accountMap[acct].breakdown.find(x => x.symbol === sym);
+        if (existing) {
+          existing.quantity += qty;
+        } else {
+          accountMap[acct].breakdown.push({
+            symbol: sym,
+            quantity: qty,
+            currentPrice: 0,
+            totalValue: 0
+          });
+        }
+      }
+  
+      // now apply real-time prices
+      for (const acct in accountMap) {
+        let acctTotal = 0;
+        for (const item of accountMap[acct].breakdown) {
+          const px = prices[item.symbol] || 0;
+          item.currentPrice = px;
+          item.totalValue = px * item.quantity;
+          acctTotal += item.totalValue;
+        }
+        accountMap[acct].accountTotal = acctTotal;
+      }
+  
+      const byAccount = Object.keys(accountMap).map(acct => ({
+        account: acct,
+        totalValue: accountMap[acct].accountTotal,
+        breakdown: accountMap[acct].breakdown
+      }));
+  
+      // 5) build bySymbol
+      const bySymbol = [];
+      for (const sym of symbols) {
+        const qty = symbolMap[sym];
+        const px = prices[sym] || 0;
+        const val = qty * px;
+        bySymbol.push({
+          symbol: sym,
+          totalQuantity: qty,
+          currentPrice: px,
+          totalValue: val
+        });
+      }
+  
+      // overall total
+      const totalValue = bySymbol.reduce((sum, i) => sum + i.totalValue, 0);
+  
+      // 6) respond
+      res.json({
+        totalValue,
+        byAccount,
+        bySymbol
+      });
+    } catch (err) {
+      console.error('Error in GET /manual-balances-overview:', err);
+      res.status(500).json({ error: 'Server error' });
+    }
+  });
+  
+  
 
 /***************************************************************
  * POST /transactions/batch-delete

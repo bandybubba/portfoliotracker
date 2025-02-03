@@ -1,19 +1,14 @@
-/************************************************************
- * src/App.jsx
- * 
- * Wires up routes to the new DarkLayout
- ************************************************************/
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import DarkLayout from './DarkLayout';
 
-// Pages
 import Dashboard from './pages/Dashboard';
-import Transactions from './pages/Transactions';
 import ImportCSV from './pages/ImportCSV';
+import Transactions from './pages/Transactions';
 import Snapshots from './pages/Snapshots';
 import Performance from './pages/Performance';
 import Accounts from './pages/Accounts';
+import ManualBalances from './pages/ManualBalances';
 
 function App() {
   return (
@@ -27,6 +22,7 @@ function App() {
           <Route path="/snapshots" element={<Snapshots />} />
           <Route path="/performance" element={<Performance />} />
           <Route path="/accounts" element={<Accounts />} />
+          <Route path="/manual-balances" element={<ManualBalances />} />
         </Routes>
       </DarkLayout>
     </BrowserRouter>

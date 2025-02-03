@@ -35,6 +35,16 @@ db.serialize(() => {
       toAccount TEXT
     )
   `);
+  
+  db.run(`
+  CREATE TABLE IF NOT EXISTS manual_balances (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    account TEST,
+    symbol TEXT,
+    quantity REAL,
+    notes TEXT
+  )
+`);
 
   db.run(`CREATE TABLE IF NOT EXISTS portfolio_snapshots (
     id INTEGER PRIMARY KEY AUTOINCREMENT,

@@ -1,8 +1,3 @@
-/************************************************************
- * frontend/src/pages/ImportCSV.jsx
- *
- * A page to upload a CSV file for transactions import.
- ************************************************************/
 import React, { useState } from 'react';
 
 function ImportCSV() {
@@ -26,13 +21,12 @@ function ImportCSV() {
 
     try {
       const formData = new FormData();
-      formData.append('file', file); // must match "upload.single('file')" field name
+      formData.append('file', file);
 
       const res = await fetch('http://localhost:3000/transactions/import-csv', {
         method: 'POST',
-        body: formData // send as multipart/form-data
+        body: formData
       });
-
       if (!res.ok) {
         throw new Error(`Error importing CSV: ${res.status}`);
       }
@@ -45,26 +39,21 @@ function ImportCSV() {
   };
 
   return (
-    <div style={{ padding: 20 }}>
-      <h2>Import Transactions via CSV</h2>
+    <div>
+      <h1 style={{ marginBottom: '20px' }}>Import CSV</h1>
       {error && <p style={{ color: 'red' }}>{error}</p>}
-      {message && <p style={{ color: 'green' }}>{message}</p>}
+      {message && <p style={{ color: 'lime' }}>{message}</p>}
 
-      <form onSubmit={handleSubmit}>
-        <div style={{ marginBottom: '10px' }}>
-          <label>Select CSV File: </label>
-          <input type="file" accept=".csv" onChange={handleFileChange} />
-        </div>
-        <button type="submit" className="btn-primary">Import CSV</button>
-      </form>
-
-      <p style={{ marginTop: '20px', color: '#666' }}>
-        Make sure the CSV headers match the transaction fields:
-        <br />
-        <code>
-          date,type,notes,account,fromSymbol,fromQuantity,fromPrice,toSymbol,toQuantity,toPrice,fromAccount,toAccount
-        </code>
-      </p>
+      <div className="dark-card">
+        <h3>Upload Your CSV</h3>
+        <form onSubmit={handleSubmit}>
+          <div style={{ marginBottom: '10px' }}>
+            <label>Select CSV File: </label>
+            <input type="file" accept=".csv" onChange={handleFileChange} />
+          </div>
+          <button type="submit" className="dark-btn">Import CSV</button>
+        </form>
+      </div>
     </div>
   );
 }

@@ -4,7 +4,6 @@ function Transactions() {
   const [transactions, setTransactions] = useState([]);
   const [error, setError] = useState('');
 
-  // form fields...
   const [date, setDate] = useState('');
   const [type, setType] = useState('');
   const [notes, setNotes] = useState('');
@@ -18,7 +17,6 @@ function Transactions() {
   const [toQuantity, setToQuantity] = useState('');
   const [toPrice, setToPrice] = useState('');
 
-  // multiple-delete checkboxes
   const [selectedIds, setSelectedIds] = useState([]);
 
   useEffect(() => {
@@ -63,7 +61,6 @@ function Transactions() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
-
       if (!res.ok) {
         throw new Error(`Server error: ${res.status}`);
       }
@@ -157,6 +154,7 @@ function Transactions() {
               onChange={e => setNotes(e.target.value)}
             />
           </div>
+
           {type.toLowerCase() !== 'transfer' && (
             <div style={{ marginBottom: '8px' }}>
               <label>Account: </label>
@@ -167,6 +165,7 @@ function Transactions() {
               />
             </div>
           )}
+
           {type.toLowerCase() === 'transfer' && (
             <>
               <div style={{ marginBottom: '8px' }}>
@@ -187,6 +186,7 @@ function Transactions() {
               </div>
             </>
           )}
+
           <div style={{ marginBottom: '8px' }}>
             <label>From Symbol: </label>
             <input
@@ -214,6 +214,7 @@ function Transactions() {
               onChange={e => setFromPrice(e.target.value)}
             />
           </div>
+
           <div style={{ marginBottom: '8px' }}>
             <label>To Symbol: </label>
             <input
@@ -240,6 +241,7 @@ function Transactions() {
               onChange={e => setToPrice(e.target.value)}
             />
           </div>
+
           <button type="submit" className="dark-btn">Add Transaction</button>
         </form>
       </div>
@@ -255,9 +257,7 @@ function Transactions() {
         <table className="dark-table">
           <thead>
             <tr>
-              <th>
-                {/* checkboxes */}
-              </th> 
+              <th></th> {/* checkboxes */}
               <th>ID</th>
               <th>Date</th>
               <th>Type</th>

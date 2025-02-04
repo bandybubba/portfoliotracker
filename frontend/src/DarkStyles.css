@@ -1,205 +1,209 @@
 /************************************************************
  * DarkStyles.css
  * 
- * Merged approach with .dark-container for centering.
+ * Reverted .dark-container to simpler usage:
+ *   - no forced flex
+ *   - optional max-width (1600px for example)
  ************************************************************/
 
  :root {
-    --bg-color: #0F0F10;
-    --sidebar-bg: #1A1A1D;
-    --card-bg: #1E1E22;
-    --text-color: #ECECEC;
-    --highlight-color: #A09EF7;
-    --header-height: 60px;
-    --sidebar-width: 220px;
-    --transition-speed: 0.3s;
-    font-size: 14px;
-    font-family: 'Roboto', sans-serif;
-    color-scheme: dark;
-  }
-  
-  html, body {
-    margin: 0;
-    padding: 0;
-    background: var(--bg-color) !important;
-    color: var(--text-color);
-    min-height: 100vh;
-  }
-  
-  /* The overall layout has .dark-sidebar and main container */
-  .dark-layout {
-    display: flex;
-    min-height: 100vh;
-  }
-  
-  /* SIDEBAR */
+  --bg-color: #0F0F10;
+  --sidebar-bg: #1A1A1D;
+  --card-bg: #1E1E22;
+  --text-color: #ECECEC;
+  --highlight-color: #A09EF7;
+  --header-height: 60px;
+  --sidebar-width: 220px;
+  --transition-speed: 0.3s;
+  font-size: 14px;
+  font-family: 'Roboto', sans-serif;
+  color-scheme: dark;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg-color) !important;
+  color: var(--text-color);
+  min-height: 100vh;
+}
+
+/* The overall layout has .dark-sidebar and main container */
+.dark-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* SIDEBAR */
+.dark-sidebar {
+  width: var(--sidebar-width);
+  background: var(--sidebar-bg);
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  transition: width var(--transition-speed);
+}
+
+.dark-sidebar h2 {
+  color: var(--highlight-color);
+  margin: 0 0 20px;
+  font-size: 18px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.dark-sidebar ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.dark-sidebar ul li {
+  margin-bottom: 10px;
+}
+.dark-sidebar ul li a {
+  color: var(--text-color);
+  text-decoration: none;
+  font-weight: 500;
+  padding: 8px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background var(--transition-speed);
+}
+.dark-sidebar ul li a:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+/* TOPBAR */
+.dark-topbar {
+  height: var(--header-height);
+  background: #18181B;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  justify-content: space-between;
+  color: #ccc;
+}
+
+/* MAIN CONTAINER */
+.dark-main-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column; /* topbar at top, content below */
+}
+
+/* MAIN CONTENT */
+.dark-main-content {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+/* The container that centers all page content */
+.dark-container {
+  width: 100%;
+  max-width: 1600px; /* or 1200px if you prefer narrower */
+  margin: 0 auto;
+  /* no forced display: flex here */
+}
+
+/* CARDS & TABLES */
+.dark-card {
+  background: var(--card-bg);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+.dark-card h3 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  color: #fff;
+}
+.dark-card-header {
+  font-size: 16px;
+  margin-bottom: 12px;
+}
+
+.dark-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.dark-table th,
+.dark-table td {
+  padding: 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  text-align: left;
+}
+.dark-table th {
+  color: #aaa;
+  font-weight: 500;
+}
+.dark-table tr:hover {
+  background: rgba(255,255,255,0.05);
+}
+
+/* Buttons */
+.dark-btn {
+  background: var(--highlight-color);
+  color: #fff;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 4px;
+  transition: background var(--transition-speed);
+  cursor: pointer;
+}
+.dark-btn:hover {
+  background: #7f7df7;
+}
+
+/* Headings */
+h1, h2, h3, h4, h5 {
+  color: #fff;
+}
+
+/* Search bar (optional) */
+.search-bar {
+  display: inline-flex;
+  align-items: center;
+  background: #2a2a2f;
+  padding: 6px 10px;
+  border-radius: 4px;
+  margin-bottom: 10px;
+}
+.search-bar input {
+  border: none;
+  background: transparent;
+  outline: none;
+  color: #fff;
+}
+.search-bar input::placeholder {
+  color: #999;
+}
+
+/* Sort icon (optional) */
+.sort-icon {
+  margin-left: 5px;
+  color: #999;
+  cursor: pointer;
+}
+
+/* RESPONSIVE SIDEBAR */
+@media (max-width: 768px) {
   .dark-sidebar {
-    width: var(--sidebar-width);
-    background: var(--sidebar-bg);
-    display: flex;
-    flex-direction: column;
-    padding: 20px;
-    transition: width var(--transition-speed);
+    position: fixed;
+    left: -220px;
+    top: 0;
+    height: 100vh;
+    z-index: 999;
   }
-  
-  .dark-sidebar h2 {
-    color: var(--highlight-color);
-    margin: 0 0 20px;
-    font-size: 18px;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+  .dark-sidebar.show {
+    left: 0;
   }
-  .dark-sidebar ul {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-  }
-  .dark-sidebar ul li {
-    margin-bottom: 10px;
-  }
-  .dark-sidebar ul li a {
-    color: var(--text-color);
-    text-decoration: none;
-    font-weight: 500;
-    padding: 8px;
-    border-radius: 4px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    transition: background var(--transition-speed);
-  }
-  .dark-sidebar ul li a:hover {
-    background: rgba(255,255,255,0.1);
-  }
-  
-  /* TOPBAR */
-  .dark-topbar {
-    height: var(--header-height);
-    background: #18181B;
-    display: flex;
-    align-items: center;
-    padding: 0 20px;
-    justify-content: space-between;
-    color: #ccc;
-  }
-  
-  .dark-main-container {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .dark-main-content {
-    flex: 1;
-    padding: 20px;
-    overflow-y: auto;
-  }
-  
-  /* The container that centers all page content */
-  .dark-container {
-    width: 100%;
-    max-width: 1200px;
-    margin: 0 auto;
-  }
-  
-  /* CARDS & TABLES */
-  .dark-card {
-    background: var(--card-bg);
-    border-radius: 8px;
-    padding: 16px;
-    margin-bottom: 20px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-  }
-  .dark-card h3 {
-    margin-top: 0;
-    margin-bottom: 10px;
-    color: #fff;
-  }
-  .dark-card-header {
-    font-size: 16px;
-    margin-bottom: 12px;
-  }
-  
-  .dark-table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-  .dark-table th,
-  .dark-table td {
-    padding: 10px;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
-    text-align: left;
-  }
-  .dark-table th {
-    color: #aaa;
-    font-weight: 500;
-  }
-  .dark-table tr:hover {
-    background: rgba(255,255,255,0.05);
-  }
-  
-  /* Buttons */
-  .dark-btn {
-    background: var(--highlight-color);
-    color: #fff;
-    padding: 8px 12px;
-    border: none;
-    border-radius: 4px;
-    transition: background var(--transition-speed);
+  .dark-topbar .sidebar-toggle {
+    display: inline-block;
     cursor: pointer;
   }
-  .dark-btn:hover {
-    background: #7f7df7;
-  }
-  
-  /* Headings */
-  h1, h2, h3, h4, h5 {
-    color: #fff;
-  }
-  
-  /* Search bar (optional) */
-  .search-bar {
-    display: inline-flex;
-    align-items: center;
-    background: #2a2a2f;
-    padding: 6px 10px;
-    border-radius: 4px;
-    margin-bottom: 10px;
-  }
-  .search-bar input {
-    border: none;
-    background: transparent;
-    outline: none;
-    color: #fff;
-  }
-  .search-bar input::placeholder {
-    color: #999;
-  }
-  
-  /* Sort icon (optional) */
-  .sort-icon {
-    margin-left: 5px;
-    color: #999;
-    cursor: pointer;
-  }
-  
-  /* RESPONSIVE SIDEBAR */
-  @media (max-width: 768px) {
-    .dark-sidebar {
-      position: fixed;
-      left: -220px;
-      top: 0;
-      height: 100vh;
-      z-index: 999;
-    }
-    .dark-sidebar.show {
-      left: 0;
-    }
-    .dark-topbar .sidebar-toggle {
-      display: inline-block;
-      cursor: pointer;
-    }
-  }
-  
+}

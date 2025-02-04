@@ -1,18 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import '../DarkStyles.css'; // ensure you have the .dark-card, .dark-table, etc.
+import '../DarkStyles.css';
 
 function ManualBalances() {
-  // raw list from GET /manual-balances
   const [balances, setBalances] = useState([]);
   const [error, setError] = useState('');
 
-  // fields for adding new
+  // fields
   const [account, setAccount] = useState('');
   const [symbol, setSymbol] = useState('');
   const [quantity, setQuantity] = useState('');
   const [notes, setNotes] = useState('');
 
-  // overview from GET /manual-balances-overview
   const [overview, setOverview] = useState(null);
   const [overviewError, setOverviewError] = useState('');
 
@@ -20,9 +18,8 @@ function ManualBalances() {
     fetchAll();
   }, []);
 
-  // fetch both raw list & overview
   const fetchAll = async () => {
-    await Promise.all([ fetchRawBalances(), fetchOverview() ]);
+    await Promise.all([fetchRawBalances(), fetchOverview()]);
   };
 
   const fetchRawBalances = async () => {
@@ -49,7 +46,6 @@ function ManualBalances() {
     }
   };
 
-  // Add / create
   const handleAdd = async (e) => {
     e.preventDefault();
     try {
@@ -73,7 +69,6 @@ function ManualBalances() {
       setSymbol('');
       setQuantity('');
       setNotes('');
-      // refresh
       fetchAll();
     } catch (err) {
       console.error('Add manual balance error:', err);
@@ -81,7 +76,6 @@ function ManualBalances() {
     }
   };
 
-  // Delete
   const handleDelete = async (id) => {
     if (!window.confirm('Delete this manual balance?')) return;
     try {
@@ -102,7 +96,6 @@ function ManualBalances() {
       <h1>Manual Balances (Banks, Stocks, Etc.)</h1>
       {error && <p style={{ color: 'red' }}>{error}</p>}
 
-      {/* FORM */}
       <div className="dark-card" style={{ marginBottom: '20px' }}>
         <h3>Add Manual Balance Entry</h3>
         <form onSubmit={handleAdd}>
@@ -147,7 +140,6 @@ function ManualBalances() {
         </form>
       </div>
 
-      {/* RAW LIST */}
       <div className="dark-card">
         <h3>Stored Manual Entries</h3>
         <div style={{ maxHeight: '200px', overflowY: 'auto' }}>
@@ -182,7 +174,6 @@ function ManualBalances() {
         </div>
       </div>
 
-      {/* OVERVIEW */}
       <div className="dark-card">
         <h3>Overview: By Account / By Symbol</h3>
         {overviewError && <p style={{ color: 'red' }}>{overviewError}</p>}
@@ -198,7 +189,6 @@ function ManualBalances() {
               })}
             </p>
 
-            {/* By Account */}
             <h4>By Account</h4>
             <div style={{ maxHeight: '200px', overflowY: 'auto', marginBottom: '20px' }}>
               <table className="dark-table">
@@ -221,7 +211,6 @@ function ManualBalances() {
                         })}
                       </td>
                       <td>
-                        {/* Another table or inline listing */}
                         <div style={{ maxHeight: '100px', overflowY: 'auto' }}>
                           <table className="dark-table">
                             <thead>
@@ -251,7 +240,6 @@ function ManualBalances() {
               </table>
             </div>
 
-            {/* By Symbol */}
             <h4>By Symbol</h4>
             <div style={{ maxHeight: '200px', overflowY: 'auto' }}>
               <table className="dark-table">
@@ -275,7 +263,6 @@ function ManualBalances() {
                 </tbody>
               </table>
             </div>
-
           </>
         )}
       </div>

@@ -6,7 +6,7 @@
  ************************************************************/
 
 /* Root variables for consistent colors */
-:root {
+/* :root {
   --primary-color: #4e73df; 
   --secondary-color: #36b9cc;
   --success-color: #1cc88a;
@@ -14,28 +14,28 @@
   --dark-color: #343a40;
   --light-bg: #f8f9fc;
   --text-color: #858796;
-}
+} */
 
-/* Body reset & font */
+/* Body reset & font
 body {
   margin: 0;
   padding: 0;
   background-color: var(--light-bg);
   font-family: 'Roboto', sans-serif;
   color: var(--text-color);
-}
+} */
 
 /* Table styling */
-table.custom-table {
+/* table.custom-table {
   width: 100%;
   border-collapse: collapse;
   background: #fff;
   border-radius: 5px;
   overflow: hidden; /* so rounding corners is clean */
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-}
+  /* box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+} */ */
 
-table.custom-table thead tr {
+/* table.custom-table thead tr {
   background: var(--primary-color);
   color: #fff;
   text-align: left;
@@ -43,9 +43,9 @@ table.custom-table thead tr {
 }
 table.custom-table thead th {
   padding: 10px 15px;
-}
+} */
 
-table.custom-table tbody tr {
+/* table.custom-table tbody tr {
   border-bottom: 1px solid #ddd;
   transition: background 0.2s;
 }
@@ -54,10 +54,10 @@ table.custom-table tbody tr:hover {
 }
 table.custom-table tbody td {
   padding: 10px 15px;
-}
+} */
 
 /* Buttons */
-.btn-primary {
+/* .btn-primary {
   background-color: var(--primary-color);
   color: #fff;
   border: none;
@@ -69,45 +69,45 @@ table.custom-table tbody td {
 }
 .btn-primary:hover {
   background-color: #3b5bbf;
-}
+} */
 
 /* Reactive dropdown for transaction type */
-.select-type {
+/* .select-type {
   padding: 5px;
   border-radius: 4px;
   border: 1px solid #ccc;
   transition: border-color 0.2s;
-}
-.select-type:focus {
+} */
+/* .select-type:focus {
   border-color: var(--primary-color);
   outline: none;
-}
+} */
 
 /* Card-like container for Dashboard widgets, snapshots, etc. */
-.card {
+/* .card {
   background: #fff;
   border-radius: 5px;
   margin-bottom: 20px;
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-}
-.card-header {
+} */
+/* .card-header {
   background: var(--primary-color);
   color: #fff;
   padding: 10px;
   font-weight: 600;
   border-top-left-radius: 5px;
   border-top-right-radius: 5px;
-}
-.card-body {
+} */
+/* .card-body {
   padding: 15px;
-}
+} */
 
 /* Use color-coded text for transaction types if you want */
-.type-buy {
+/* .type-buy {
   color: var(--success-color);
   font-weight: 600;
-}
-.type-sell {
+} */
+/* .type-sell {
   color: var(--danger-color);
   font-weight: 600;
 }
@@ -118,4 +118,4 @@ table.custom-table tbody td {
 .type-transfer {
   color: var(--dark-color);
   font-weight: 600;
-}
+} */

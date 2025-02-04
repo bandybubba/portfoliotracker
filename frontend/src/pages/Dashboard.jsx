@@ -1,15 +1,6 @@
-/************************************************************
- * Dashboard.jsx - Merged FULL Code 
- *   - cost basis from /portfolio
- *   - real-time from /portfolio-current
- *   - chart using react-chartjs-2
- ************************************************************/
 import React, { useEffect, useState } from 'react';
 import { Line } from 'react-chartjs-2';
 import { Chart as ChartJS } from 'chart.js/auto';
-
-// This merges your old cost-basis & real-time logic 
-// plus the chart example.
 
 function Dashboard() {
   // Cost basis data from /portfolio
@@ -23,12 +14,11 @@ function Dashboard() {
   // Example chart data
   const [chartData, setChartData] = useState(null);
 
-  // On mount, fetch cost-basis & real-time
   useEffect(() => {
     fetchCostBasis();
     fetchRealtimeValue();
 
-    // Provide some sample chart data (like your previous example)
+    // sample chart data
     const sampleLabels = ['Jan 24','Jan 25','Jan 26','Jan 27','Jan 28','Jan 29','Jan 30'];
     const sampleValues = [60000, 58000, 59000, 57000, 56500, 58000, 59686];
     setChartData({
@@ -53,7 +43,7 @@ function Dashboard() {
         throw new Error(`Error fetching /portfolio: ${res.status}`);
       }
       const data = await res.json();
-      setCostBasis(data); // e.g. [{symbol, quantity, averageCost}]
+      setCostBasis(data);
     } catch (err) {
       console.error('Cost basis fetch error:', err);
       setCostBasisError(err.message);
@@ -79,8 +69,7 @@ function Dashboard() {
     fetchRealtimeValue();
   };
 
-  // We'll also compute a "balance" for demonstration from costBasis
-  // or from realTime. Up to you.
+  // approximate balance from costBasis
   let approximateBalance = 0;
   costBasis.forEach(item => {
     approximateBalance += item.quantity * item.averageCost;
@@ -88,67 +77,123 @@ function Dashboard() {
 
   return (
     <div>
-      <h1 style={{ marginBottom: '20px' }}>Dashboard</h1>
-      
-      <button onClick={handleRefresh} className="dark-btn" style={{ marginBottom: '20px' }}>
-        Refresh
-      </button>
+      {/* Page Title */}
+      <h1 style={{ marginBottom: '20px' }}>Portfolio</h1>
 
-      {/* TOP CARD with chart */}
-      <div className="dark-card" style={{ marginBottom: '20px' }}>
-        <h3>Portfolio Balance</h3>
-        {/* approximateBalance from cost basis */}
-        <p style={{ fontSize: '2rem', fontWeight: 'bold' }}>
-          ${approximateBalance.toLocaleString(undefined, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-          })}
-        </p>
-        {chartData ? (
-          <div className="chart-container">
-            <Line data={chartData} />
+      {/* ROW: Left has big chart + assets, right has performance, etc. */}
+      <div style={{ display: 'flex', gap: '20px' }}>
+        {/* LEFT COLUMN */}
+        <div style={{ flex: 2 }}>
+          {/* Big chart card */}
+          <div className="dark-card" style={{ marginBottom: '20px' }}>
+            <h3>Portfolio Balance</h3>
+            <p style={{ fontSize: '2rem', fontWeight: 'bold' }}>
+              ${approximateBalance.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+              })}
+            </p>
+            {chartData ? (
+              <div style={{ height: '300px' }}>
+                <Line data={chartData} />
+              </div>
+            ) : (
+              <p>Loading chart...</p>
+            )}
           </div>
-        ) : (
-          <p>Loading chart...</p>
-        )}
-      </div>
 
-      {/* COST BASIS TABLE */}
-      <div className="dark-card" style={{ marginBottom: '40px' }}>
-        <h3>Cost Basis (Average Cost) from /portfolio</h3>
-        {costBasisError && <p style={{ color: 'red' }}>{costBasisError}</p>}
-        {costBasis.length === 0 ? (
-          <p>No holdings found (cost basis).</p>
-        ) : (
-          <table className="dark-table">
-            <thead>
-              <tr>
-                <th>Symbol</th>
-                <th>Quantity</th>
-                <th>Average Cost</th>
-              </tr>
-            </thead>
-            <tbody>
-              {costBasis.map((item, idx) => (
-                <tr key={idx}>
-                  <td>{item.symbol}</td>
-                  <td>{item.quantity.toFixed(4)}</td>
-                  <td>
-                    ${item.averageCost.toLocaleString(undefined, {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2
-                    })}
-                  </td>
+          {/* "Your assets" or Cost Basis card */}
+          <div className="dark-card">
+            <h3>Your assets</h3>
+            {costBasisError && <p style={{ color: 'red' }}>{costBasisError}</p>}
+            {costBasis.length === 0 ? (
+              <p>No holdings found.</p>
+            ) : (
+              <table className="dark-table">
+                <thead>
+                  <tr>
+                    <th>Symbol</th>
+                    <th>Quantity</th>
+                    <th>Avg Cost</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {costBasis.map((item, idx) => (
+                    <tr key={idx}>
+                      <td>{item.symbol}</td>
+                      <td>{item.quantity.toFixed(4)}</td>
+                      <td>
+                        $
+                        {item.averageCost.toLocaleString(undefined, {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2
+                        })}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </div>
+
+        {/* RIGHT COLUMN */}
+        <div style={{ flex: 1 }}>
+          {/* Example: All time performance card */}
+          <div className="dark-card" style={{ marginBottom: '20px' }}>
+            <h3>All time performance</h3>
+            {/* If you want to incorporate /performance data, do so here */}
+            <p>Unrealized return: ???</p>
+            <p>Cost basis: ???</p>
+          </div>
+
+          {/* Example: Tax summary card */}
+          <div className="dark-card">
+            <h3>Tax summary</h3>
+            <table className="dark-table">
+              <thead>
+                <tr>
+                  <th>Tax year</th>
+                  <th>Gains</th>
+                  <th>Income</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
+              </thead>
+              <tbody>
+                <tr>
+                  <td>2025</td>
+                  <td>+$4,217</td>
+                  <td>$6</td>
+                </tr>
+                <tr>
+                  <td>2024</td>
+                  <td>-$13,338</td>
+                  <td>$13</td>
+                </tr>
+                <tr>
+                  <td>2023</td>
+                  <td>-$682</td>
+                  <td>$1</td>
+                </tr>
+                <tr>
+                  <td>...</td>
+                  <td>...</td>
+                  <td>...</td>
+                </tr>
+              </tbody>
+            </table>
+            <button className="dark-btn" style={{ marginTop: '10px' }}>
+              Download tax reports
+            </button>
+          </div>
+        </div>
       </div>
 
-      {/* REAL-TIME VALUE */}
+      {/* REAL-TIME Value (optional) if you want it shown below */}
+      <button onClick={handleRefresh} className="dark-btn" style={{ margin: '20px 0' }}>
+        Refresh Data
+      </button>
       <div className="dark-card">
-        <h3>Real-Time Portfolio Value from /portfolio-current</h3>
+        <h3>Real-Time Portfolio Value</h3>
         {realtimeError && <p style={{ color: 'red' }}>{realtimeError}</p>}
         {!realtimeData ? (
           <p>Loading real-time data...</p>
@@ -161,7 +206,6 @@ function Dashboard() {
                 maximumFractionDigits: 2
               })}
             </p>
-
             {realtimeData.breakdown && realtimeData.breakdown.length > 0 ? (
               <table className="dark-table">
                 <thead>

@@ -1,9 +1,5 @@
-/************************************************************
- * DarkLayout.jsx - Full final code 
- ************************************************************/
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-// Make sure you have `npm install react-icons`
 import {
   FaChartPie,
   FaFileImport,
@@ -25,6 +21,7 @@ function DarkLayout({ children }) {
 
   return (
     <div className="dark-layout">
+      {/* SIDEBAR */}
       <aside className={`dark-sidebar ${sidebarOpen ? 'show' : ''}`}>
         <h2>
           <FaChartPie />
@@ -37,13 +34,12 @@ function DarkLayout({ children }) {
               Dashboard
             </Link>
           </li>
-        <li>
-        <Link to="/manual-balances" onClick={() => setSidebarOpen(false)}>
-            <FaList />
-            Manual Balances
-        </Link>
-        </li>
-
+          <li>
+            <Link to="/manual-balances" onClick={() => setSidebarOpen(false)}>
+              <FaList />
+              Manual Balances
+            </Link>
+          </li>
           <li>
             <Link to="/import-csv" onClick={() => setSidebarOpen(false)}>
               <FaFileImport />
@@ -77,23 +73,24 @@ function DarkLayout({ children }) {
         </ul>
       </aside>
 
+      {/* MAIN AREA */}
       <div className="dark-main-container">
-        {/* Topbar */}
+        {/* TOP BAR */}
         <header className="dark-topbar">
-          <div>
-            {/* Hamburger for mobile */}
+          <div style={{ display: 'flex', alignItems: 'center' }}>
             <FaBars
               className="sidebar-toggle"
-              style={{ fontSize: '20px', marginRight: '15px' }}
+              style={{ fontSize: '20px', marginRight: '15px', cursor: 'pointer' }}
               onClick={toggleSidebar}
             />
-            <strong>My Portfolio Admin</strong>
+            <strong style={{ fontSize: '18px' }}>Portfolio</strong>
           </div>
           <div>User Info / Settings</div>
         </header>
 
-        {/* Main content => container with max-width */}
+        {/* MAIN CONTENT */}
         <main className="dark-main-content">
+          {/* Container to center page content */}
           <div className="dark-container">
             {children}
           </div>

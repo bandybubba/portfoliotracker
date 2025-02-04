@@ -52,23 +52,47 @@ function Performance() {
           <tbody>
             <tr>
               <td>24h</td>
-              <td>{perf.dayChange !== null ? `$${perf.dayChange.toFixed(2)}` : 'No data'}</td>
-              <td>{perf.dayChangePercent !== null ? `${perf.dayChangePercent.toFixed(2)}%` : 'No data'}</td>
+              <td>
+                {perf.dayChange !== null ? `$${perf.dayChange.toFixed(2)}` : 'No data'}
+              </td>
+              <td>
+                {perf.dayChangePercent !== null
+                  ? `${perf.dayChangePercent.toFixed(2)}%`
+                  : 'No data'}
+              </td>
             </tr>
             <tr>
               <td>7d</td>
-              <td>{perf.weekChange !== null ? `$${perf.weekChange.toFixed(2)}` : 'No data'}</td>
-              <td>{perf.weekChangePercent !== null ? `${perf.weekChangePercent.toFixed(2)}%` : 'No data'}</td>
+              <td>
+                {perf.weekChange !== null ? `$${perf.weekChange.toFixed(2)}` : 'No data'}
+              </td>
+              <td>
+                {perf.weekChangePercent !== null
+                  ? `${perf.weekChangePercent.toFixed(2)}%`
+                  : 'No data'}
+              </td>
             </tr>
             <tr>
               <td>30d</td>
-              <td>{perf.monthChange !== null ? `$${perf.monthChange.toFixed(2)}` : 'No data'}</td>
-              <td>{perf.monthChangePercent !== null ? `${perf.monthChangePercent.toFixed(2)}%` : 'No data'}</td>
+              <td>
+                {perf.monthChange !== null ? `$${perf.monthChange.toFixed(2)}` : 'No data'}
+              </td>
+              <td>
+                {perf.monthChangePercent !== null
+                  ? `${perf.monthChangePercent.toFixed(2)}%`
+                  : 'No data'}
+              </td>
             </tr>
             <tr>
               <td>365d</td>
-              <td>{perf.yearChange !== null ? `$${perf.yearChange.toFixed(2)}` : 'No data'}</td>
-              <td>{perf.yearChangePercent !== null ? `${perf.yearChangePercent.toFixed(2)}%` : 'No data'}</td>
+              <td>
+                {perf.yearChange !== null ? `$${perf.yearChange.toFixed(2)}` : 'No data'}
+              </td>
+              <td>
+                {perf.yearChangePercent !== null
+                  ? `${perf.yearChangePercent.toFixed(2)}%`
+                  : 'No data'}
+              </td>
             </tr>
           </tbody>
         </table>

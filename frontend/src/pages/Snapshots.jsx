@@ -25,11 +25,13 @@ function Snapshots() {
 
   const handleTakeSnapshotNow = async () => {
     try {
-      const res = await fetch('http://localhost:3000/snapshot', { method: 'POST' });
+      const res = await fetch('http://localhost:3000/snapshot', {
+        method: 'POST'
+      });
       if (!res.ok) {
         throw new Error(`Server error: ${res.status}`);
       }
-      const data = await res.json();
+      await res.json();
       fetchSnapshots();
     } catch (err) {
       console.error('Error taking snapshot now:', err);

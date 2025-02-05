@@ -1,24 +1,47 @@
+/************************************************************
+ * Dashboard.jsx - Full version with:
+ *  1) Transaction-based cost basis & real-time
+ *  2) Manual-balances overview
+ *  3) Combined portfolio balance
+ *  4) Two-column layout (left col + right col) for your boxes
+ *  5) Minimal inline styles
+ ************************************************************/
+
 import React, { useEffect, useState } from 'react';
 import { Line } from 'react-chartjs-2';
 import { Chart as ChartJS } from 'chart.js/auto';
 
 function Dashboard() {
-  // Cost basis data from /portfolio
+  /************************************************************
+   * STATE
+   ************************************************************/
+  // Transaction-based cost basis
   const [costBasis, setCostBasis] = useState([]);
   const [costBasisError, setCostBasisError] = useState('');
 
-  // Real-time data from /portfolio-current
+  // Transaction-based real-time
   const [realtimeData, setRealtimeData] = useState(null);
   const [realtimeError, setRealtimeError] = useState('');
 
-  // Example chart data
+  // Manual balances overview => totalValue, byAccount, bySymbol
+  const [manualOverview, setManualOverview] = useState(null);
+  const [manualError, setManualError] = useState('');
+
+  // Chart data
   const [chartData, setChartData] = useState(null);
 
+  /************************************************************
+   * EFFECT
+   ************************************************************/
   useEffect(() => {
+    // Fetch transaction cost basis
     fetchCostBasis();
+    // Fetch transaction real-time
     fetchRealtimeValue();
+    // Fetch manual overview
+    fetchManualOverview();
 
-    // sample chart data
+    // Provide sample chart data
     const sampleLabels = ['Jan 24','Jan 25','Jan 26','Jan 27','Jan 28','Jan 29','Jan 30'];
     const sampleValues = [60000, 58000, 59000, 57000, 56500, 58000, 59686];
     setChartData({
@@ -36,6 +59,9 @@ function Dashboard() {
     });
   }, []);
 
+  /************************************************************
+   * API FETCHES
+   ************************************************************/
   const fetchCostBasis = async () => {
     try {
       const res = await fetch('http://localhost:3000/portfolio');
@@ -64,37 +90,89 @@ function Dashboard() {
     }
   };
 
+  const fetchManualOverview = async () => {
+    try {
+      const res = await fetch('http://localhost:3000/manual-balances-overview');
+      if (!res.ok) {
+        throw new Error(`Error fetching manual balances overview: ${res.status}`);
+      }
+      const data = await res.json();
+      setManualOverview(data);
+    } catch (err) {
+      console.error('Manual balances fetch error:', err);
+      setManualError(err.message);
+    }
+  };
+
+  /************************************************************
+   * REFRESH
+   ************************************************************/
   const handleRefresh = () => {
     fetchCostBasis();
     fetchRealtimeValue();
+    fetchManualOverview();
   };
 
-  // approximate balance from costBasis
+  /************************************************************
+   * COMBINED LOGIC
+   ************************************************************/
+  // 1) Transaction-based approximate cost-basis total
   let approximateBalance = 0;
   costBasis.forEach(item => {
     approximateBalance += item.quantity * item.averageCost;
   });
 
+  // 2) Manual total
+  let manualTotal = 0;
+  if (manualOverview && manualOverview.totalValue) {
+    manualTotal = manualOverview.totalValue;
+  }
+
+  // 3) Combined portfolio cost-basis total
+  const combinedPortfolioValue = approximateBalance + manualTotal;
+
+  // Real-time transaction-based
+  let txRealTimeValue = 0;
+  if (realtimeData && realtimeData.totalValue) {
+    txRealTimeValue = realtimeData.totalValue;
+  }
+
+  // For manual real-time, if you want a separate route, you'd do that;
+  // For simplicity, we just reuse manualOverview.totalValue or 0
+  // to simulate "manual real-time" or keep it at the same number
+  let manualRealTime = manualTotal; // or 0, if you have no real-time for manual
+
+  // Combined real-time total
+  const combinedRealTimeValue = txRealTimeValue + manualRealTime;
+
+  /************************************************************
+   * RENDER
+   ************************************************************/
   return (
     <div>
       {/* Page Title */}
-      <h1 style={{ marginBottom: '20px' }}>Portfolio</h1>
+      <h1 className="page-title">Dashboard</h1>
 
-      {/* ROW: Left has big chart + assets, right has performance, etc. */}
-      <div style={{ display: 'flex', gap: '20px' }}>
+      {/* Refresh Button */}
+      <button onClick={handleRefresh} className="dark-btn refresh-btn">
+        Refresh
+      </button>
+
+      {/* TWO COLUMNS: left col, right col (like cointracker) */}
+      <div className="two-col-row">
         {/* LEFT COLUMN */}
-        <div style={{ flex: 2 }}>
-          {/* Big chart card */}
-          <div className="dark-card" style={{ marginBottom: '20px' }}>
-            <h3>Portfolio Balance</h3>
-            <p style={{ fontSize: '2rem', fontWeight: 'bold' }}>
-              ${approximateBalance.toLocaleString(undefined, {
+        <div className="col">
+          {/* Card: Combined Portfolio Balance w/ chart */}
+          <div className="dark-card">
+            <h3>Portfolio Balance (Combined)</h3>
+            <p className="big-portfolio-balance">
+              ${combinedPortfolioValue.toLocaleString(undefined, {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2
               })}
             </p>
             {chartData ? (
-              <div style={{ height: '300px' }}>
+              <div className="chart-container" style={{ height: '300px' }}>
                 <Line data={chartData} />
               </div>
             ) : (
@@ -102,19 +180,19 @@ function Dashboard() {
             )}
           </div>
 
-          {/* "Your assets" or Cost Basis card */}
+          {/* Cost Basis (transaction-based) */}
           <div className="dark-card">
-            <h3>Your assets</h3>
+            <h3>Cost Basis (Avg Cost) from /portfolio</h3>
             {costBasisError && <p style={{ color: 'red' }}>{costBasisError}</p>}
             {costBasis.length === 0 ? (
-              <p>No holdings found.</p>
+              <p>No holdings found (cost basis).</p>
             ) : (
               <table className="dark-table">
                 <thead>
                   <tr>
                     <th>Symbol</th>
                     <th>Quantity</th>
-                    <th>Avg Cost</th>
+                    <th>Average Cost</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -135,115 +213,94 @@ function Dashboard() {
               </table>
             )}
           </div>
+
+          {/* Manual Balances (Overview if you want to show details) */}
+          <div className="dark-card">
+            <h3>Manual Balances Overview</h3>
+            {manualError && <p style={{ color: 'red' }}>{manualError}</p>}
+            {!manualOverview ? (
+              <p>Loading manual balances...</p>
+            ) : (
+              <>
+                <p>
+                  <strong>Total Manual Value:</strong>{' '}
+                  ${manualOverview.totalValue?.toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                  })}
+                </p>
+                {/* If you want tables for byAccount / bySymbol, do so here */}
+              </>
+            )}
+          </div>
         </div>
 
         {/* RIGHT COLUMN */}
-        <div style={{ flex: 1 }}>
-          {/* Example: All time performance card */}
-          <div className="dark-card" style={{ marginBottom: '20px' }}>
-            <h3>All time performance</h3>
-            {/* If you want to incorporate /performance data, do so here */}
-            <p>Unrealized return: ???</p>
-            <p>Cost basis: ???</p>
+        <div className="col">
+          {/* Real-Time Combined */}
+          <div className="dark-card">
+            <h3>Real-Time Value (Combined)</h3>
+            {realtimeError && <p style={{ color: 'red' }}>{realtimeError}</p>}
+            {!realtimeData ? (
+              <p>Loading real-time data...</p>
+            ) : (
+              <>
+                <p>
+                  <strong>Total Value: </strong>$
+                  {combinedRealTimeValue.toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                  })}
+                </p>
+                {realtimeData.breakdown && realtimeData.breakdown.length > 0 ? (
+                  <table className="dark-table">
+                    <thead>
+                      <tr>
+                        <th>Symbol</th>
+                        <th>Quantity</th>
+                        <th>Current Price</th>
+                        <th>Total Value</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {realtimeData.breakdown.map((row, idx) => (
+                        <tr key={idx}>
+                          <td>{row.symbol}</td>
+                          <td>{row.quantity.toFixed(4)}</td>
+                          <td>
+                            $
+                            {row.currentPrice.toLocaleString(undefined, {
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2
+                            })}
+                          </td>
+                          <td>
+                            $
+                            {row.totalValue.toLocaleString(undefined, {
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2
+                            })}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                ) : (
+                  <p>No symbols found in transaction real-time data.</p>
+                )}
+              </>
+            )}
           </div>
 
-          {/* Example: Tax summary card */}
+          {/* Example: Another card, e.g. "Performance" snippet or "Tax summary" */}
           <div className="dark-card">
-            <h3>Tax summary</h3>
-            <table className="dark-table">
-              <thead>
-                <tr>
-                  <th>Tax year</th>
-                  <th>Gains</th>
-                  <th>Income</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>2025</td>
-                  <td>+$4,217</td>
-                  <td>$6</td>
-                </tr>
-                <tr>
-                  <td>2024</td>
-                  <td>-$13,338</td>
-                  <td>$13</td>
-                </tr>
-                <tr>
-                  <td>2023</td>
-                  <td>-$682</td>
-                  <td>$1</td>
-                </tr>
-                <tr>
-                  <td>...</td>
-                  <td>...</td>
-                  <td>...</td>
-                </tr>
-              </tbody>
-            </table>
-            <button className="dark-btn" style={{ marginTop: '10px' }}>
-              Download tax reports
-            </button>
+            <h3>Performance / Tax Summary</h3>
+            <p>Integrate your performance or tax data here.</p>
+            <p>All time gain: ???</p>
+            <p>Cost basis: ???</p>
+            <button className="dark-btn">View More</button>
           </div>
         </div>
-      </div>
-
-      {/* REAL-TIME Value (optional) if you want it shown below */}
-      <button onClick={handleRefresh} className="dark-btn" style={{ margin: '20px 0' }}>
-        Refresh Data
-      </button>
-      <div className="dark-card">
-        <h3>Real-Time Portfolio Value</h3>
-        {realtimeError && <p style={{ color: 'red' }}>{realtimeError}</p>}
-        {!realtimeData ? (
-          <p>Loading real-time data...</p>
-        ) : (
-          <>
-            <p>
-              <strong>Total Value: </strong>$
-              {realtimeData.totalValue.toLocaleString(undefined, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-              })}
-            </p>
-            {realtimeData.breakdown && realtimeData.breakdown.length > 0 ? (
-              <table className="dark-table">
-                <thead>
-                  <tr>
-                    <th>Symbol</th>
-                    <th>Quantity</th>
-                    <th>Current Price</th>
-                    <th>Total Value</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {realtimeData.breakdown.map((row, idx) => (
-                    <tr key={idx}>
-                      <td>{row.symbol}</td>
-                      <td>{row.quantity.toFixed(4)}</td>
-                      <td>
-                        $
-                        {row.currentPrice.toLocaleString(undefined, {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2
-                        })}
-                      </td>
-                      <td>
-                        $
-                        {row.totalValue.toLocaleString(undefined, {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2
-                        })}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            ) : (
-              <p>No symbols held in real-time view.</p>
-            )}
-          </>
-        )}
       </div>
     </div>
   );

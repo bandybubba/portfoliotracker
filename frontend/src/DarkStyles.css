@@ -1,10 +1,10 @@
 /************************************************************
  * DarkStyles.css
  * 
- * Enforces a 3-column layout:
- *  - Left sidebar (dark-sidebar)
- *  - Top bar (dark-topbar) across top
- *  - Middle: .dark-main + Right col: .dark-rightbar
+ * 1) .two-col-row => row for two columns
+ * 2) .col => each column
+ * 3) .dark-card => ensures color is #fff
+ * 4) Merges your entire CSS with these updates
  ************************************************************/
 
  :root {
@@ -29,19 +29,15 @@ html, body {
   min-height: 100vh;
 }
 
-/* 
-  .dark-layout => overall container 
-  - left sidebar
-  - right area for topbar + body
-*/
+/************************************************************
+ * .dark-layout => overall container with sidebar & topbar
+ ************************************************************/
 .dark-layout {
   display: flex;
   min-height: 100vh;
 }
 
-/************************************************************
- * SIDEBAR
- ************************************************************/
+/* SIDEBAR */
 .dark-sidebar {
   width: var(--sidebar-width);
   background: var(--sidebar-bg);
@@ -50,7 +46,6 @@ html, body {
   padding: 20px;
   transition: width var(--transition-speed);
 }
-
 .dark-sidebar h2 {
   color: var(--highlight-color);
   margin: 0 0 20px;
@@ -83,82 +78,67 @@ html, body {
   background: rgba(255,255,255,0.1);
 }
 
-/************************************************************
- * MAIN CONTAINER: topbar + body
- ************************************************************/
+/* TOPBAR */
+.dark-topbar {
+  height: var(--header-height);
+  background: #18181B;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  justify-content: space-between;
+  color: #ccc;
+}
+.dark-topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+.dark-topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.sidebar-toggle {
+  font-size: 20px;
+  cursor: pointer;
+}
+
+/* MAIN CONTAINER => topbar + content */
 .dark-main-container {
   flex: 1;
   display: flex;
   flex-direction: column;
 }
 
-/* The top bar across the top */
-.dark-topbar {
-  height: var(--header-height);
-  background: #18181B;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  color: #ccc;
-  padding: 0 20px;
-}
-
-.dark-topbar-left {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-}
-
-.dark-topbar-right {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.sidebar-toggle {
-  font-size: 20px;
-  cursor: pointer;
-}
-
-/************************************************************
- * .dark-body => middle content row (main center + right bar)
- ************************************************************/
-.dark-body {
-  display: flex;
+.dark-main-content {
   flex: 1;
-  overflow: hidden; /* if you want to control scroll in the sub-sections */
-}
-
-/************************************************************
- * .dark-main => the center column
- ************************************************************/
-.dark-main {
-  flex: 2; /* bigger main area */
-  padding: 20px;
-  overflow-y: auto; 
-  /* or remove overflow if you want the entire page to scroll */
-}
-
-/* The container that centers page content if you want narrower widths */
-.dark-container {
-  max-width: 1200px; /* adjust if you want narrower/wider content inside main */
-  margin: 0 auto;
-  width: 100%;
-}
-
-/************************************************************
- * .dark-rightbar => the right column
- ************************************************************/
-.dark-rightbar {
-  width: 280px; /* or flex: 1 if you want it fluid */
-  background: #1C1C20;
-  border-left: 1px solid rgba(255,255,255,0.1);
   padding: 20px;
   overflow-y: auto;
 }
 
 /************************************************************
- * .dark-card => Reusable card style
+ * .dark-container => centers page content
+ ************************************************************/
+.dark-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/************************************************************
+ * 2-COLUMN LAYOUT FOR MAIN SCREEN
+ ************************************************************/
+.two-col-row {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+.col {
+  flex: 1;
+}
+
+/************************************************************
+ * .dark-card => card styling
  ************************************************************/
 .dark-card {
   background: var(--card-bg);
@@ -166,6 +146,7 @@ html, body {
   padding: 16px;
   margin-bottom: 20px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  color: #fff; /* ensure text is visible on the dark background */
 }
 .dark-card h3 {
   margin-top: 0;
@@ -174,11 +155,12 @@ html, body {
 }
 
 /************************************************************
- * .dark-table => Reusable table style
+ * .dark-table => table styling
  ************************************************************/
 .dark-table {
   width: 100%;
   border-collapse: collapse;
+  color: #fff;
 }
 .dark-table th,
 .dark-table td {
@@ -218,7 +200,24 @@ h1, h2, h3, h4, h5 {
 }
 
 /************************************************************
- * Responsive for the sidebar
+ * Utility classes
+ ************************************************************/
+.page-title {
+  font-size: 24px;
+  margin-bottom: 20px;
+  color: #fff;
+}
+.big-portfolio-balance {
+  font-size: 2rem;
+  font-weight: bold;
+  margin: 15px 0;
+}
+.refresh-btn {
+  margin-bottom: 20px;
+}
+
+/************************************************************
+ * Responsive sidebar
  ************************************************************/
 @media (max-width: 768px) {
   .dark-sidebar {
@@ -231,16 +230,8 @@ h1, h2, h3, h4, h5 {
   .dark-sidebar.show {
     left: 0;
   }
-
   .dark-topbar .sidebar-toggle {
     display: inline-block;
     cursor: pointer;
   }
-
-  /* If you want the right bar to collapse as well:
-     .dark-rightbar {
-       display: none;
-     } 
-     or some conditional approach in the layout if desired
-  */
 }

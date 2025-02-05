@@ -1,20 +1,8 @@
-/************************************************************
- * Dashboard.jsx - Full version with:
- *  1) Transaction-based cost basis & real-time
- *  2) Manual-balances overview
- *  3) Combined portfolio balance
- *  4) Two-column layout (left col + right col) for your boxes
- *  5) Minimal inline styles
- ************************************************************/
-
 import React, { useEffect, useState } from 'react';
 import { Line } from 'react-chartjs-2';
 import { Chart as ChartJS } from 'chart.js/auto';
 
 function Dashboard() {
-  /************************************************************
-   * STATE
-   ************************************************************/
   // Transaction-based cost basis
   const [costBasis, setCostBasis] = useState([]);
   const [costBasisError, setCostBasisError] = useState('');
@@ -23,25 +11,18 @@ function Dashboard() {
   const [realtimeData, setRealtimeData] = useState(null);
   const [realtimeError, setRealtimeError] = useState('');
 
-  // Manual balances overview => totalValue, byAccount, bySymbol
+  // Manual balances overview
   const [manualOverview, setManualOverview] = useState(null);
   const [manualError, setManualError] = useState('');
 
-  // Chart data
+  // Chart
   const [chartData, setChartData] = useState(null);
 
-  /************************************************************
-   * EFFECT
-   ************************************************************/
   useEffect(() => {
-    // Fetch transaction cost basis
     fetchCostBasis();
-    // Fetch transaction real-time
     fetchRealtimeValue();
-    // Fetch manual overview
     fetchManualOverview();
 
-    // Provide sample chart data
     const sampleLabels = ['Jan 24','Jan 25','Jan 26','Jan 27','Jan 28','Jan 29','Jan 30'];
     const sampleValues = [60000, 58000, 59000, 57000, 56500, 58000, 59686];
     setChartData({
@@ -59,9 +40,6 @@ function Dashboard() {
     });
   }, []);
 
-  /************************************************************
-   * API FETCHES
-   ************************************************************/
   const fetchCostBasis = async () => {
     try {
       const res = await fetch('http://localhost:3000/portfolio');
@@ -104,31 +82,23 @@ function Dashboard() {
     }
   };
 
-  /************************************************************
-   * REFRESH
-   ************************************************************/
   const handleRefresh = () => {
     fetchCostBasis();
     fetchRealtimeValue();
     fetchManualOverview();
   };
 
-  /************************************************************
-   * COMBINED LOGIC
-   ************************************************************/
-  // 1) Transaction-based approximate cost-basis total
+  // Transaction-based approximate
   let approximateBalance = 0;
   costBasis.forEach(item => {
     approximateBalance += item.quantity * item.averageCost;
   });
-
-  // 2) Manual total
+  // Manual total
   let manualTotal = 0;
   if (manualOverview && manualOverview.totalValue) {
     manualTotal = manualOverview.totalValue;
   }
-
-  // 3) Combined portfolio cost-basis total
+  // Combined cost-basis
   const combinedPortfolioValue = approximateBalance + manualTotal;
 
   // Real-time transaction-based
@@ -136,33 +106,21 @@ function Dashboard() {
   if (realtimeData && realtimeData.totalValue) {
     txRealTimeValue = realtimeData.totalValue;
   }
+  // We'll pretend manualRealTime = manualTotal
+  const combinedRealTimeValue = txRealTimeValue + manualTotal;
 
-  // For manual real-time, if you want a separate route, you'd do that;
-  // For simplicity, we just reuse manualOverview.totalValue or 0
-  // to simulate "manual real-time" or keep it at the same number
-  let manualRealTime = manualTotal; // or 0, if you have no real-time for manual
-
-  // Combined real-time total
-  const combinedRealTimeValue = txRealTimeValue + manualRealTime;
-
-  /************************************************************
-   * RENDER
-   ************************************************************/
   return (
     <div>
-      {/* Page Title */}
       <h1 className="page-title">Dashboard</h1>
+      {manualError && <p style={{ color: 'red' }}>{manualError}</p>}
 
-      {/* Refresh Button */}
       <button onClick={handleRefresh} className="dark-btn refresh-btn">
         Refresh
       </button>
 
-      {/* TWO COLUMNS: left col, right col (like cointracker) */}
       <div className="two-col-row">
         {/* LEFT COLUMN */}
         <div className="col">
-          {/* Card: Combined Portfolio Balance w/ chart */}
           <div className="dark-card">
             <h3>Portfolio Balance (Combined)</h3>
             <p className="big-portfolio-balance">
@@ -172,7 +130,7 @@ function Dashboard() {
               })}
             </p>
             {chartData ? (
-              <div className="chart-container" style={{ height: '300px' }}>
+              <div style={{ height: '300px' }}>
                 <Line data={chartData} />
               </div>
             ) : (
@@ -180,12 +138,11 @@ function Dashboard() {
             )}
           </div>
 
-          {/* Cost Basis (transaction-based) */}
           <div className="dark-card">
-            <h3>Cost Basis (Avg Cost) from /portfolio</h3>
+            <h3>Cost Basis (Avg Cost)</h3>
             {costBasisError && <p style={{ color: 'red' }}>{costBasisError}</p>}
             {costBasis.length === 0 ? (
-              <p>No holdings found (cost basis).</p>
+              <p>No holdings found (transactions side).</p>
             ) : (
               <table className="dark-table">
                 <thead>
@@ -214,10 +171,8 @@ function Dashboard() {
             )}
           </div>
 
-          {/* Manual Balances (Overview if you want to show details) */}
           <div className="dark-card">
             <h3>Manual Balances Overview</h3>
-            {manualError && <p style={{ color: 'red' }}>{manualError}</p>}
             {!manualOverview ? (
               <p>Loading manual balances...</p>
             ) : (
@@ -229,7 +184,6 @@ function Dashboard() {
                     maximumFractionDigits: 2
                   })}
                 </p>
-                {/* If you want tables for byAccount / bySymbol, do so here */}
               </>
             )}
           </div>
@@ -237,7 +191,6 @@ function Dashboard() {
 
         {/* RIGHT COLUMN */}
         <div className="col">
-          {/* Real-Time Combined */}
           <div className="dark-card">
             <h3>Real-Time Value (Combined)</h3>
             {realtimeError && <p style={{ color: 'red' }}>{realtimeError}</p>}
@@ -252,6 +205,7 @@ function Dashboard() {
                     maximumFractionDigits: 2
                   })}
                 </p>
+
                 {realtimeData.breakdown && realtimeData.breakdown.length > 0 ? (
                   <table className="dark-table">
                     <thead>
@@ -286,17 +240,15 @@ function Dashboard() {
                     </tbody>
                   </table>
                 ) : (
-                  <p>No symbols found in transaction real-time data.</p>
+                  <p>No symbols in transactions real-time data.</p>
                 )}
               </>
             )}
           </div>
 
-          {/* Example: Another card, e.g. "Performance" snippet or "Tax summary" */}
           <div className="dark-card">
             <h3>Performance / Tax Summary</h3>
-            <p>Integrate your performance or tax data here.</p>
-            <p>All time gain: ???</p>
+            <p>All-time gain: ???</p>
             <p>Cost basis: ???</p>
             <button className="dark-btn">View More</button>
           </div>

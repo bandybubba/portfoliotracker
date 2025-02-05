@@ -1,10 +1,7 @@
 /************************************************************
  * DarkStyles.css
- * 
- * 1) .two-col-row => row for two columns
- * 2) .col => each column
- * 3) .dark-card => ensures color is #fff
- * 4) Merges your entire CSS with these updates
+ *
+ * Provides .two-col-row, .col for consistent 2-column layout
  ************************************************************/
 
  :root {
@@ -29,9 +26,7 @@ html, body {
   min-height: 100vh;
 }
 
-/************************************************************
- * .dark-layout => overall container with sidebar & topbar
- ************************************************************/
+/* LAYOUT */
 .dark-layout {
   display: flex;
   min-height: 100vh;
@@ -116,18 +111,14 @@ html, body {
   overflow-y: auto;
 }
 
-/************************************************************
- * .dark-container => centers page content
- ************************************************************/
+/* .dark-container => centers page content */
 .dark-container {
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
 }
 
-/************************************************************
- * 2-COLUMN LAYOUT FOR MAIN SCREEN
- ************************************************************/
+/* Two-column row classes */
 .two-col-row {
   display: flex;
   gap: 20px;
@@ -137,16 +128,14 @@ html, body {
   flex: 1;
 }
 
-/************************************************************
- * .dark-card => card styling
- ************************************************************/
+/* .dark-card => card styling */
 .dark-card {
   background: var(--card-bg);
   border-radius: 8px;
   padding: 16px;
   margin-bottom: 20px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-  color: #fff; /* ensure text is visible on the dark background */
+  color: #fff; 
 }
 .dark-card h3 {
   margin-top: 0;
@@ -154,9 +143,7 @@ html, body {
   color: #fff;
 }
 
-/************************************************************
- * .dark-table => table styling
- ************************************************************/
+/* .dark-table => table styling */
 .dark-table {
   width: 100%;
   border-collapse: collapse;
@@ -176,9 +163,7 @@ html, body {
   background: rgba(255,255,255,0.05);
 }
 
-/************************************************************
- * Buttons
- ************************************************************/
+/* Buttons */
 .dark-btn {
   background: var(--highlight-color);
   color: #fff;
@@ -192,16 +177,12 @@ html, body {
   background: #7f7df7;
 }
 
-/************************************************************
- * Headings
- ************************************************************/
+/* Headings */
 h1, h2, h3, h4, h5 {
   color: #fff;
 }
 
-/************************************************************
- * Utility classes
- ************************************************************/
+/* Utility classes */
 .page-title {
   font-size: 24px;
   margin-bottom: 20px;
@@ -216,9 +197,7 @@ h1, h2, h3, h4, h5 {
   margin-bottom: 20px;
 }
 
-/************************************************************
- * Responsive sidebar
- ************************************************************/
+/* Responsive sidebar */
 @media (max-width: 768px) {
   .dark-sidebar {
     position: fixed;
@@ -234,4 +213,10 @@ h1, h2, h3, h4, h5 {
     display: inline-block;
     cursor: pointer;
   }
+
+  /* If you want the two-col layout to collapse on mobile:
+  .two-col-row {
+    flex-direction: column;
+  }
+  */
 }

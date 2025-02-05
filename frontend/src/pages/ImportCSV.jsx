@@ -39,20 +39,39 @@ function ImportCSV() {
   };
 
   return (
-    <div>
-      <h1 style={{ marginBottom: '20px' }}>Import CSV</h1>
+    <div className="dark-container">
+      <h1 className="page-title">Import CSV</h1>
       {error && <p style={{ color: 'red' }}>{error}</p>}
       {message && <p style={{ color: 'lime' }}>{message}</p>}
 
-      <div className="dark-card">
-        <h3>Upload Your CSV</h3>
-        <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: '10px' }}>
-            <label>Select CSV File: </label>
-            <input type="file" accept=".csv" onChange={handleFileChange} />
+      <div className="two-col-row">
+        {/* LEFT COLUMN -> CSV form */}
+        <div className="col">
+          <div className="dark-card">
+            <h3>Upload Your CSV</h3>
+            <form onSubmit={handleSubmit}>
+              <div style={{ marginBottom: '10px' }}>
+                <label>Select CSV File: </label>
+                <input type="file" accept=".csv" onChange={handleFileChange} />
+              </div>
+              <button type="submit" className="dark-btn">Import CSV</button>
+            </form>
           </div>
-          <button type="submit" className="dark-btn">Import CSV</button>
-        </form>
+        </div>
+
+        {/* RIGHT COLUMN -> Any explanation or instructions */}
+        <div className="col">
+          <div className="dark-card">
+            <h3>CSV Format Info</h3>
+            <p>Ensure your CSV has the correct headers:</p>
+            <ul>
+              <li>date, type, notes, account</li>
+              <li>fromSymbol, fromQuantity, fromPrice</li>
+              <li>toSymbol, toQuantity, toPrice</li>
+              <li>fromAccount, toAccount</li>
+            </ul>
+          </div>
+        </div>
       </div>
     </div>
   );

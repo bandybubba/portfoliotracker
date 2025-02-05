@@ -21,7 +21,6 @@ function DarkLayout({ children }) {
 
   return (
     <div className="dark-layout">
-      {/* LEFT SIDEBAR */}
       <aside className={`dark-sidebar ${sidebarOpen ? 'show' : ''}`}>
         <h2>
           <FaChartPie />
@@ -73,9 +72,7 @@ function DarkLayout({ children }) {
         </ul>
       </aside>
 
-      {/* RIGHT SIDE: TOP BAR + 2-COLUMN BODY (CENTER + RIGHT) */}
       <div className="dark-main-container">
-        {/* TOP BAR ACROSS THE TOP */}
         <header className="dark-topbar">
           <div className="dark-topbar-left">
             <FaBars
@@ -89,28 +86,11 @@ function DarkLayout({ children }) {
           </div>
         </header>
 
-        {/* MAIN BODY: center content + right column */}
-        <div className="dark-body">
-          {/* CENTER BODY */}
-          <main className="dark-main">
-            <div className="dark-container">
-              {children}
-            </div>
-          </main>
-
-          {/* RIGHT COLUMN (unused if you want, or can store global widgets) */}
-          <aside className="dark-rightbar">
-            {/* Potentially keep it empty or add something:
-                e.g. global metrics, chat widget, user profile, etc. */}
-            <div className="dark-card">
-              <h3>Right Column</h3>
-              <p>
-                You can place any global widgets or 
-                quick stats here across all pages.
-              </p>
-            </div>
-          </aside>
-        </div>
+        <main className="dark-main-content">
+          <div className="dark-container">
+            {children}
+          </div>
+        </main>
       </div>
     </div>
   );

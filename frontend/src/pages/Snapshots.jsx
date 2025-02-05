@@ -64,48 +64,57 @@ function Snapshots() {
   };
 
   return (
-    <div>
-      <h1 style={{ marginBottom: '20px' }}>Snapshots</h1>
+    <div className="dark-container">
+      <h1 className="page-title">Snapshots</h1>
       {error && <p style={{ color: 'red' }}>{error}</p>}
 
-      <div className="dark-card" style={{ marginBottom: '20px' }}>
-        <button onClick={handleTakeSnapshotNow} className="dark-btn" style={{ marginRight: '10px' }}>
-          Take Snapshot Now
-        </button>
+      <div className="two-col-row">
+        {/* LEFT COLUMN -> snapshots list */}
+        <div className="col">
+          <div className="dark-card">
+            <h3>Historical Snapshots</h3>
+            <table className="dark-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Date</th>
+                  <th>Total Value</th>
+                </tr>
+              </thead>
+              <tbody>
+                {snapshots.map((s) => (
+                  <tr key={s.id}>
+                    <td>{s.id}</td>
+                    <td>{s.date}</td>
+                    <td>${(s.totalValue || 0).toLocaleString()}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
 
-        <form onSubmit={handleSnapshotOnDate} style={{ display: 'inline-block' }}>
-          <label>Snapshot Date: </label>
-          <input
-            type="date"
-            value={snapshotDate}
-            onChange={(e) => setSnapshotDate(e.target.value)}
-          />
-          <button type="submit" className="dark-btn" style={{ marginLeft: '10px' }}>
-            Snapshot On This Date
-          </button>
-        </form>
-      </div>
+        {/* RIGHT COLUMN -> snapshot actions */}
+        <div className="col">
+          <div className="dark-card">
+            <h3>Snapshot Actions</h3>
+            <button onClick={handleTakeSnapshotNow} className="dark-btn" style={{ marginRight: '10px' }}>
+              Take Snapshot Now
+            </button>
 
-      <div className="dark-card">
-        <h3>Historical Snapshots</h3>
-        <table className="dark-table">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Date</th>
-              <th>Total Value</th>
-            </tr>
-          </thead>
-          <tbody>
-            {snapshots.map((s) => (
-              <tr key={s.id}>
-                <td>{s.id}</td>
-                <td>{s.date}</td>
-                <td>${(s.totalValue || 0).toLocaleString()}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+            <form onSubmit={handleSnapshotOnDate} style={{ display: 'inline-block' }}>
+              <label>Snapshot Date: </label>
+              <input
+                type="date"
+                value={snapshotDate}
+                onChange={(e) => setSnapshotDate(e.target.value)}
+              />
+              <button type="submit" className="dark-btn" style={{ marginLeft: '10px' }}>
+                Snapshot On This Date
+              </button>
+            </form>
+          </div>
+        </div>
       </div>
     </div>
   );

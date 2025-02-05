@@ -4,6 +4,7 @@ function Transactions() {
   const [transactions, setTransactions] = useState([]);
   const [error, setError] = useState('');
 
+  // form fields
   const [date, setDate] = useState('');
   const [type, setType] = useState('');
   const [notes, setNotes] = useState('');
@@ -17,6 +18,7 @@ function Transactions() {
   const [toQuantity, setToQuantity] = useState('');
   const [toPrice, setToPrice] = useState('');
 
+  // multiple-delete checkboxes
   const [selectedIds, setSelectedIds] = useState([]);
 
   useEffect(() => {
@@ -119,190 +121,190 @@ function Transactions() {
   };
 
   return (
-    <div>
-      <h1 style={{ marginBottom: '20px' }}>Transactions</h1>
+    <div className="dark-container">
+      <h1 className="page-title">Transactions</h1>
       {error && <p style={{ color: 'red' }}>{error}</p>}
 
-      {/* Add Transaction Form */}
-      <div className="dark-card" style={{ marginBottom: '20px' }}>
-        <h3>Add New Transaction</h3>
-        <form onSubmit={handleAddTransaction}>
-          <div style={{ marginBottom: '8px' }}>
-            <label>Date: </label>
-            <input
-              type="date"
-              value={date}
-              onChange={e => setDate(e.target.value)}
-              required
-            />
-          </div>
-          <div style={{ marginBottom: '8px' }}>
-            <label>Type: </label>
-            <select value={type} onChange={e => setType(e.target.value)} required>
-              <option value="">--Select--</option>
-              <option value="buy">Buy</option>
-              <option value="sell">Sell</option>
-              <option value="swap">Swap</option>
-              <option value="transfer">Transfer</option>
-            </select>
-          </div>
-          <div style={{ marginBottom: '8px' }}>
-            <label>Notes: </label>
-            <input
-              type="text"
-              value={notes}
-              onChange={e => setNotes(e.target.value)}
-            />
-          </div>
-
-          {type.toLowerCase() !== 'transfer' && (
-            <div style={{ marginBottom: '8px' }}>
-              <label>Account: </label>
-              <input
-                type="text"
-                value={account}
-                onChange={e => setAccount(e.target.value)}
-              />
-            </div>
-          )}
-
-          {type.toLowerCase() === 'transfer' && (
-            <>
-              <div style={{ marginBottom: '8px' }}>
-                <label>From Account: </label>
+      <div className="two-col-row">
+        {/* LEFT COLUMN -> Add Form, Delete Selected */}
+        <div className="col">
+          <div className="dark-card">
+            <h3>Add New Transaction</h3>
+            <form onSubmit={handleAddTransaction}>
+              <div>
+                <label>Date: </label>
                 <input
-                  type="text"
-                  value={fromAccount}
-                  onChange={e => setFromAccount(e.target.value)}
+                  type="date"
+                  value={date}
+                  onChange={e => setDate(e.target.value)}
+                  required
                 />
               </div>
-              <div style={{ marginBottom: '8px' }}>
-                <label>To Account: </label>
+              <div>
+                <label>Type: </label>
+                <select value={type} onChange={e => setType(e.target.value)} required>
+                  <option value="">--Select--</option>
+                  <option value="buy">Buy</option>
+                  <option value="sell">Sell</option>
+                  <option value="swap">Swap</option>
+                  <option value="transfer">Transfer</option>
+                </select>
+              </div>
+              <div>
+                <label>Notes: </label>
                 <input
                   type="text"
-                  value={toAccount}
-                  onChange={e => setToAccount(e.target.value)}
+                  value={notes}
+                  onChange={e => setNotes(e.target.value)}
                 />
               </div>
-            </>
-          )}
-
-          <div style={{ marginBottom: '8px' }}>
-            <label>From Symbol: </label>
-            <input
-              type="text"
-              value={fromSymbol}
-              onChange={e => setFromSymbol(e.target.value)}
-              required
-            />
-          </div>
-          <div style={{ marginBottom: '8px' }}>
-            <label>From Quantity: </label>
-            <input
-              type="number"
-              step="any"
-              value={fromQuantity}
-              onChange={e => setFromQuantity(e.target.value)}
-            />
-          </div>
-          <div style={{ marginBottom: '8px' }}>
-            <label>From Price: </label>
-            <input
-              type="number"
-              step="any"
-              value={fromPrice}
-              onChange={e => setFromPrice(e.target.value)}
-            />
-          </div>
-
-          <div style={{ marginBottom: '8px' }}>
-            <label>To Symbol: </label>
-            <input
-              type="text"
-              value={toSymbol}
-              onChange={e => setToSymbol(e.target.value)}
-            />
-          </div>
-          <div style={{ marginBottom: '8px' }}>
-            <label>To Quantity: </label>
-            <input
-              type="number"
-              step="any"
-              value={toQuantity}
-              onChange={e => setToQuantity(e.target.value)}
-            />
-          </div>
-          <div style={{ marginBottom: '8px' }}>
-            <label>To Price: </label>
-            <input
-              type="number"
-              step="any"
-              value={toPrice}
-              onChange={e => setToPrice(e.target.value)}
-            />
-          </div>
-
-          <button type="submit" className="dark-btn">Add Transaction</button>
-        </form>
-      </div>
-
-      {/* Delete Selected */}
-      <button onClick={handleDeleteSelected} className="dark-btn" style={{ marginBottom: '20px' }}>
-        Delete Selected
-      </button>
-
-      {/* Transactions Table */}
-      <div className="dark-card">
-        <h3>All Transactions</h3>
-        <table className="dark-table">
-          <thead>
-            <tr>
-              <th></th> {/* checkboxes */}
-              <th>ID</th>
-              <th>Date</th>
-              <th>Type</th>
-              <th>Notes</th>
-              <th>Account</th>
-              <th>FromAccount</th>
-              <th>ToAccount</th>
-              <th>FromSymbol</th>
-              <th>FromQty</th>
-              <th>FromPrice</th>
-              <th>ToSymbol</th>
-              <th>ToQty</th>
-              <th>ToPrice</th>
-            </tr>
-          </thead>
-          <tbody>
-            {transactions.map(tx => {
-              const checked = selectedIds.includes(tx.id);
-              return (
-                <tr key={tx.id}>
-                  <td>
+              {type.toLowerCase() !== 'transfer' && (
+                <div>
+                  <label>Account: </label>
+                  <input
+                    type="text"
+                    value={account}
+                    onChange={e => setAccount(e.target.value)}
+                  />
+                </div>
+              )}
+              {type.toLowerCase() === 'transfer' && (
+                <>
+                  <div>
+                    <label>From Account: </label>
                     <input
-                      type="checkbox"
-                      checked={checked}
-                      onChange={(e) => handleCheckboxChange(tx.id, e.target.checked)}
+                      type="text"
+                      value={fromAccount}
+                      onChange={e => setFromAccount(e.target.value)}
                     />
-                  </td>
-                  <td>{tx.id}</td>
-                  <td>{tx.date}</td>
-                  <td>{tx.type}</td>
-                  <td>{tx.notes}</td>
-                  <td>{tx.account}</td>
-                  <td>{tx.fromAccount}</td>
-                  <td>{tx.toAccount}</td>
-                  <td>{tx.fromSymbol}</td>
-                  <td>{tx.fromQuantity}</td>
-                  <td>{tx.fromPrice}</td>
-                  <td>{tx.toSymbol}</td>
-                  <td>{tx.toQuantity}</td>
-                  <td>{tx.toPrice}</td>
+                  </div>
+                  <div>
+                    <label>To Account: </label>
+                    <input
+                      type="text"
+                      value={toAccount}
+                      onChange={e => setToAccount(e.target.value)}
+                    />
+                  </div>
+                </>
+              )}
+              <div>
+                <label>From Symbol: </label>
+                <input
+                  type="text"
+                  value={fromSymbol}
+                  onChange={e => setFromSymbol(e.target.value)}
+                  required
+                />
+              </div>
+              <div>
+                <label>From Quantity: </label>
+                <input
+                  type="number"
+                  step="any"
+                  value={fromQuantity}
+                  onChange={e => setFromQuantity(e.target.value)}
+                />
+              </div>
+              <div>
+                <label>From Price: </label>
+                <input
+                  type="number"
+                  step="any"
+                  value={fromPrice}
+                  onChange={e => setFromPrice(e.target.value)}
+                />
+              </div>
+              <div>
+                <label>To Symbol: </label>
+                <input
+                  type="text"
+                  value={toSymbol}
+                  onChange={e => setToSymbol(e.target.value)}
+                />
+              </div>
+              <div>
+                <label>To Quantity: </label>
+                <input
+                  type="number"
+                  step="any"
+                  value={toQuantity}
+                  onChange={e => setToQuantity(e.target.value)}
+                />
+              </div>
+              <div>
+                <label>To Price: </label>
+                <input
+                  type="number"
+                  step="any"
+                  value={toPrice}
+                  onChange={e => setToPrice(e.target.value)}
+                />
+              </div>
+              <button type="submit" className="dark-btn">Add Transaction</button>
+            </form>
+          </div>
+
+          <button onClick={handleDeleteSelected} className="dark-btn" style={{ marginBottom: '20px' }}>
+            Delete Selected
+          </button>
+        </div>
+
+        {/* RIGHT COLUMN -> Transactions Table */}
+        <div className="col">
+          <div className="dark-card">
+            <h3>All Transactions</h3>
+            <table className="dark-table">
+              <thead>
+                <tr>
+                  <th></th> {/* checkboxes */}
+                  <th>ID</th>
+                  <th>Date</th>
+                  <th>Type</th>
+                  <th>Notes</th>
+                  <th>Account</th>
+                  <th>FromAccount</th>
+                  <th>ToAccount</th>
+                  <th>FromSymbol</th>
+                  <th>FromQty</th>
+                  <th>FromPrice</th>
+                  <th>ToSymbol</th>
+                  <th>ToQty</th>
+                  <th>ToPrice</th>
                 </tr>
-              );
-            })}
-          </tbody>
-        </table>
+              </thead>
+              <tbody>
+                {transactions.map(tx => {
+                  const checked = selectedIds.includes(tx.id);
+                  return (
+                    <tr key={tx.id}>
+                      <td>
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={(e) => handleCheckboxChange(tx.id, e.target.checked)}
+                        />
+                      </td>
+                      <td>{tx.id}</td>
+                      <td>{tx.date}</td>
+                      <td>{tx.type}</td>
+                      <td>{tx.notes}</td>
+                      <td>{tx.account}</td>
+                      <td>{tx.fromAccount}</td>
+                      <td>{tx.toAccount}</td>
+                      <td>{tx.fromSymbol}</td>
+                      <td>{tx.fromQuantity}</td>
+                      <td>{tx.fromPrice}</td>
+                      <td>{tx.toSymbol}</td>
+                      <td>{tx.toQuantity}</td>
+                      <td>{tx.toPrice}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </div>
   );

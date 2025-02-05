@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import DarkLayout from './DarkLayout';
 
+// Pages
 import Dashboard from './pages/Dashboard';
 import ImportCSV from './pages/ImportCSV';
 import Transactions from './pages/Transactions';

@@ -1,9 +1,10 @@
 /************************************************************
  * DarkStyles.css
  * 
- * Reverted .dark-container to simpler usage:
- *   - no forced flex
- *   - optional max-width (1600px for example)
+ * Enforces a 3-column layout:
+ *  - Left sidebar (dark-sidebar)
+ *  - Top bar (dark-topbar) across top
+ *  - Middle: .dark-main + Right col: .dark-rightbar
  ************************************************************/
 
  :root {
@@ -28,13 +29,19 @@ html, body {
   min-height: 100vh;
 }
 
-/* The overall layout has .dark-sidebar and main container */
+/* 
+  .dark-layout => overall container 
+  - left sidebar
+  - right area for topbar + body
+*/
 .dark-layout {
   display: flex;
   min-height: 100vh;
 }
 
-/* SIDEBAR */
+/************************************************************
+ * SIDEBAR
+ ************************************************************/
 .dark-sidebar {
   width: var(--sidebar-width);
   background: var(--sidebar-bg);
@@ -76,40 +83,83 @@ html, body {
   background: rgba(255,255,255,0.1);
 }
 
-/* TOPBAR */
+/************************************************************
+ * MAIN CONTAINER: topbar + body
+ ************************************************************/
+.dark-main-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* The top bar across the top */
 .dark-topbar {
   height: var(--header-height);
   background: #18181B;
   display: flex;
   align-items: center;
-  padding: 0 20px;
   justify-content: space-between;
   color: #ccc;
+  padding: 0 20px;
 }
 
-/* MAIN CONTAINER */
-.dark-main-container {
-  flex: 1;
+.dark-topbar-left {
   display: flex;
-  flex-direction: column; /* topbar at top, content below */
+  align-items: center;
+  gap: 15px;
 }
 
-/* MAIN CONTENT */
-.dark-main-content {
+.dark-topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sidebar-toggle {
+  font-size: 20px;
+  cursor: pointer;
+}
+
+/************************************************************
+ * .dark-body => middle content row (main center + right bar)
+ ************************************************************/
+.dark-body {
+  display: flex;
   flex: 1;
+  overflow: hidden; /* if you want to control scroll in the sub-sections */
+}
+
+/************************************************************
+ * .dark-main => the center column
+ ************************************************************/
+.dark-main {
+  flex: 2; /* bigger main area */
+  padding: 20px;
+  overflow-y: auto; 
+  /* or remove overflow if you want the entire page to scroll */
+}
+
+/* The container that centers page content if you want narrower widths */
+.dark-container {
+  max-width: 1200px; /* adjust if you want narrower/wider content inside main */
+  margin: 0 auto;
+  width: 100%;
+}
+
+/************************************************************
+ * .dark-rightbar => the right column
+ ************************************************************/
+.dark-rightbar {
+  width: 280px; /* or flex: 1 if you want it fluid */
+  background: #1C1C20;
+  border-left: 1px solid rgba(255,255,255,0.1);
   padding: 20px;
   overflow-y: auto;
 }
 
-/* The container that centers all page content */
-.dark-container {
-  width: 100%;
-  max-width: 1600px; /* or 1200px if you prefer narrower */
-  margin: 0 auto;
-  /* no forced display: flex here */
-}
-
-/* CARDS & TABLES */
+/************************************************************
+ * .dark-card => Reusable card style
+ ************************************************************/
 .dark-card {
   background: var(--card-bg);
   border-radius: 8px;
@@ -122,11 +172,10 @@ html, body {
   margin-bottom: 10px;
   color: #fff;
 }
-.dark-card-header {
-  font-size: 16px;
-  margin-bottom: 12px;
-}
 
+/************************************************************
+ * .dark-table => Reusable table style
+ ************************************************************/
 .dark-table {
   width: 100%;
   border-collapse: collapse;
@@ -145,7 +194,9 @@ html, body {
   background: rgba(255,255,255,0.05);
 }
 
-/* Buttons */
+/************************************************************
+ * Buttons
+ ************************************************************/
 .dark-btn {
   background: var(--highlight-color);
   color: #fff;
@@ -159,38 +210,16 @@ html, body {
   background: #7f7df7;
 }
 
-/* Headings */
+/************************************************************
+ * Headings
+ ************************************************************/
 h1, h2, h3, h4, h5 {
   color: #fff;
 }
 
-/* Search bar (optional) */
-.search-bar {
-  display: inline-flex;
-  align-items: center;
-  background: #2a2a2f;
-  padding: 6px 10px;
-  border-radius: 4px;
-  margin-bottom: 10px;
-}
-.search-bar input {
-  border: none;
-  background: transparent;
-  outline: none;
-  color: #fff;
-}
-.search-bar input::placeholder {
-  color: #999;
-}
-
-/* Sort icon (optional) */
-.sort-icon {
-  margin-left: 5px;
-  color: #999;
-  cursor: pointer;
-}
-
-/* RESPONSIVE SIDEBAR */
+/************************************************************
+ * Responsive for the sidebar
+ ************************************************************/
 @media (max-width: 768px) {
   .dark-sidebar {
     position: fixed;
@@ -202,8 +231,16 @@ h1, h2, h3, h4, h5 {
   .dark-sidebar.show {
     left: 0;
   }
+
   .dark-topbar .sidebar-toggle {
     display: inline-block;
     cursor: pointer;
   }
+
+  /* If you want the right bar to collapse as well:
+     .dark-rightbar {
+       display: none;
+     } 
+     or some conditional approach in the layout if desired
+  */
 }
